@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ethers } from 'ethers';
 import { getContract } from '../../utils/blockchain';
 
 export default function CreateBatch() {

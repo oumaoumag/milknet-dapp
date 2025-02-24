@@ -1,3 +1,4 @@
+import "./App.css"
 import { Web3Provider } from './contexts/Web3Context';
 import FarmerRegistration from './components/farmers/Registration';
 import CreateBatch from './components/batches/CreateBatch';
