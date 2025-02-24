@@ -11,5 +11,4 @@ export const fetchBatches = async (contract) => {
   
   export const fetchFarmers = async (contract) => {
     const farmerCount = await contract.farmerCounter();
-    // Similar implementation
   };
