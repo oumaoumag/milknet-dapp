@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+
+# Runtime logs and errors
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment variable files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Mac system files
+.DS_Store
+
+# IDE and Editor files
+*.sublime-workspace
+*.sublime-project
+.vscode/
+.idea/
+
+# Temporary files and caches
+tmp/
+temp/
+.cache/
+
+# Coverage reports
+coverage/
+
+# Miscellaneous
+*.tgz
+logs/
+*.log
+
+# Storybook (if used)
+storybook-static/
