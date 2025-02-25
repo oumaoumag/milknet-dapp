@@ -18,8 +18,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-     "chain": "hardhat node",
-      "deploy": "hardhat run scripts/deploy.js --network localhost"
+    "chain": "hardhat node",
+    "deploy": "hardhat run scripts/deploy.js --network localhost"
   },
   "eslintConfig": {
     "extends": [
@@ -41,6 +41,9 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "hardhat": "^2.22.18"
+    "autoprefixer": "^10.4.20",
+    "hardhat": "^2.22.18",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.0.8"
   }
 }
