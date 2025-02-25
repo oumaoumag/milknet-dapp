@@ -6,8 +6,8 @@
   justify-content: center;
   min-height: 100vh;
   text-align: center;
-  background-color: #000; /* Black background */
-  color: #fff; /* White text for contrast */
+  background-color: white; /* Black background */
+  color: black; /* White text for contrast */
   padding: 2rem;
   font-family: 'Arial', sans-serif;
 }
@@ -41,4 +41,106 @@ input {
   margin: 0.5rem;
   border-radius: 4px;
   border: 1px solid #ccc;
+}
+
+/* Landing Page*/
+.landing {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.hero {
+  text-align: center;
+  padding: 4rem 0;
+  border-bottom: 1px solid #333;
+  margin-bottom: 3rem;
+}
+
+.cta-container {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.cta-button:hover {
+  transform: translateY(-2px);
+}
+
+.farmer-cta {
+  background: #ffcc00;
+  color: #000;
+}
+
+.buyer-cta {
+  background: #00cc88;
+  color: #000;
+}
+
+.feature-card {
+  background: #1a1a1a;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid #333;
+  transition: transform 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Header */
+.app-header {
+  background: #111;
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  color: #ffcc00;
+}
+
+.logo img {
+  height: 40px;
+}
+
+.connect-button {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.connect-button {
+  background: #ffcc00;
+  color: #000;
+  padding: 0.5rem 1.5rem;
+}
+
+.account-pill {
+  background: #222;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-family: monospace;
+}
+
+.network-chip {
+  background: #333;
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
 }
