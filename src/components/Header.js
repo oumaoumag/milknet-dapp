@@ -8,7 +8,7 @@ export default function Header() {
         <header className='app-header'>
             <nav>
                 <Link to="/" className="logo">
-                  <img src="../public/logo.svg" alt="MilkNet" />
+                  {/* <img src="../public/logo.svg" alt="MilkNet" /> */}
                   <span>MilkNet</span>
                   </Link>
 
