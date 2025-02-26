@@ -19,7 +19,7 @@ export default function FarmerDashboard() {
         loadFarmerData();
     }, [contract, account]);
 
-    if (!farmerData) return <div>LOading farmer data...</div>;
+    if (!farmerData) return <div>Loading farmer data...</div>;
 
     return (
         <div className="dashboard">
