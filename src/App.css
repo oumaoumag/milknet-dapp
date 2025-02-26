@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* App.css */
 .App {
   display: flex;
@@ -112,7 +116,7 @@ input {
   align-items: center;
   gap: 1rem;
   text-decoration: none;
-  color: #ffcc00;
+  /* color: #ffcc00; */
 }
 
 .logo img {

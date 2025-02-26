@@ -46,3 +46,7 @@ body {
   box-shadow: 0 0 0 2px #22c55e;
   outline: none;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
