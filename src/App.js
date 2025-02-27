@@ -14,9 +14,9 @@ function App() {
        <Header />
        <Routes>
          <Route path="/" element={<Landing />} />
+         <Route path="/register-farmer" element={<FarmerRegistration />} />
          <Route path="/farmer" element={<FarmerDashboard/>} />
          <Route path="/marketplace" element={<Marketplace />} />
-         <Route path="/register-farmer" element={<FarmerRegistration />} />
        </Routes>
      </BrowserRouter>
     </Web3Provider>
