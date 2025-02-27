@@ -124,23 +124,48 @@ npm run build
 
 ```plaintext
 milknet/
-├── frontend/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── pages/
-│   │   │   │   └── waitlist.tsx
-│   │   │   ├── components/
-│   │   │   │   └── footer.tsx
-│   │   │   └── utils/
-│   │   │       └── ethers.js
-│   │   └── styles/
-│   │       └── globals.css
-│   ├── public/
-│   │   └── images/
-│   └── next.config.ts
-└── backend
-    └──contracts/
-        └── ProductRegistration.sol
+├── src/
+│   ├── components/
+│   │   ├── batches/
+│   │   │   ├── BatchList.js
+│   │   │   ├── CreateBatch.js
+│   │   │   └── FormatBatchData.js
+│   │   ├── buyer/
+│   │   │   ├── Marketplace.js
+│   │   │   └── OrderModal.js
+│   │   ├── disputes/
+│   │   │   └── FileDispute.js
+│   │   ├── farmers/
+│   │   │   ├── Dashboard.js
+│   │   │   └── Registration.js
+│   │   ├── Devs.jsx
+│   │   ├── Header.jsx
+│   │   └── Landing.jsx
+│   ├── contexts/
+│   │   └── Web3Context.js
+│   ├── utils/
+│   │   ├── blockchain.js
+│   │   ├── contractCalls.js
+│   │   └── MilkNetABI.json
+│   ├── App.js
+│   ├── App.css
+│   └── index.js
+├── contracts/
+│   └── Milknet.sol
+├── public/
+│   ├── images/
+│   │   └── github.svg
+│   ├── index.html
+│   └── manifest.json
+├── scripts/
+│   └── deploy.js
+├── test/
+│   └── Lock.js
+├── ignition/
+│   └── modules/
+│       └── Lock.js
+├── README.md
+└── package.json
 ```
 
 ## Contributing
