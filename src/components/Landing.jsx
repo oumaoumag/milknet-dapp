@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-
+import { Devs } from './Devs';
 export default function Landing() {
   return (
     <div className="max-w-6xl mx-auto p-8">
@@ -35,6 +35,7 @@ export default function Landing() {
           <p>Dispute resolution & quality assurance system</p>
         </div>
       </section>
+      <Devs />
     </div>
   );
 }
