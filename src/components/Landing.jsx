@@ -8,7 +8,7 @@ export default function Landing() {
         <p className="mb-8">Connect directly with farmers for fresh dairy products</p>
         <div className="flex gap-6 justify-center mt-8">
           <Link 
-            to="/farmers" 
+            to="/register-farmer" 
             className="bg-yellow-400 text-black px-6 py-2 rounded-md hover:bg-yellow-500 transition-transform hover:-translate-y-0.5"
           >
             I'm a farmer
