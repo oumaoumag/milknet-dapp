@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useWeb3 } from '../../contexts/Web3Context';
-import { getContract } from '../../utils/blockchain';
 import { useNavigate } from 'react-router-dom';
 
 export default function FarmerRegistration() {
@@ -12,15 +11,14 @@ export default function FarmerRegistration() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [registrationStatus, setRegistrationStatus] = useState('');
-  const { account, networkName } = useWeb3();
+  const { account, contract } = useWeb3();
   const navigate = useNavigate();
 
   // Check existing registration status
   useEffect(() => {
     const checkRegistration = async () => {
-      if (account) {
+      if (account && contract) {
         try {
-          const contract = await getContract();
           const farmerData = await contract.farmers(account);
           if (farmerData.isRegistered) {
             setRegistrationStatus('already-registered');
@@ -31,45 +29,26 @@ export default function FarmerRegistration() {
       }
     };
     checkRegistration();
-  }, [account]);
+  }, [account, contract]);
 
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
+    if (!contract) {
+      setError('Contract not initialized - check network connection');
+      return;
+    }
     
+    setIsLoading(true);
     try {
-      if (!account) {
-        throw new Error('No connected wallet account');
-      }
-
-      if (!formData.name.trim()) {
-        throw new Error('Farm name is required');
-      }
-
-      const contract = await getContract();
-      
-      // Validate farmer registration status
-      const farmerData = await contract.farmers(account);
-      if (farmerData.isRegistered) {
-        throw new Error('This account is already registered as a farmer');
-      }
-
-      // Execute registration transaction
-      const tx = await contract.registerFarmer(formData.name);
-      await tx.wait(); // Wait for transaction confirmation
-
-      // Post-registration actions
-      setRegistrationStatus('success');
-      console.log('Farmer registered successfully on', networkName);
-      
-      // Redirect to dashboard after short delay
-      setTimeout(() => navigate('/farmer/dashboard'), 2000);
-
+      const tx = await contract.registerFarmer(
+        formData.name,
+        formData.location,
+        formData.certification
+      );
+      await tx.wait();
+      navigate('/farmer');
     } catch (error) {
-      console.error('Registration error:', error);
-      setError(error.reason || error.message || 'Registration failed');
-      setRegistrationStatus('error');
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +77,7 @@ export default function FarmerRegistration() {
           <p className="text-green-700">Registration successful! Redirecting...</p>
         </div>
       ) : (
-        <form onSubmit={handleRegister} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block mb-2">Farm Name *</label>
             <input
