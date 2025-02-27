@@ -1,6 +1,6 @@
 import { Contract } from 'ethers';
-import FarmerRegistrationABI from './FarmerRegistrationABI.json';
+import MilkNetABI from './MilkNetABI.json';
 
 export function getContract(address, signer) {
-  return new Contract(address, FarmerRegistrationABI, signer);
+  return new Contract(address, MilkNetABI, signer);
 }
