@@ -34,15 +34,15 @@ export function Web3Provider({ children }) {
     try {
       const chainId = await window.ethereum.request({ method: 'eth_chainId' });
       const allowedNetworks = {
-        '0x5': 'GOERLI',
-        '0x13881': 'MUMBAI',
-        // Add other networks as needed
+        '0xaa36a7': 'Sepolia',    // Sepolia Testnet (11155111)
+        '0x106a': 'LISK'          // Lisk Testnet (4202)
       };
 
       const networkKey = allowedNetworks[chainId];
       if (!networkKey) {
-        alert(`Please connect to one of: ${Object.values(allowedNetworks).join(', ')}`);
-        return;
+        const message = `Please connect to one of: ${Object.values(allowedNetworks).join(', ')}`;
+        alert(message);
+        throw new Error(message);
       }
 
       // Get contract address from environment variables
@@ -52,6 +52,9 @@ export function Web3Provider({ children }) {
       if (!contractAddress) {
         throw new Error(`Contract address not found for ${networkKey} network`);
       }
+
+      console.log('Loading contract for:', envVarName);
+      console.log('Contract address:', contractAddress);
 
       // Initialize provider and signer
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -65,13 +68,19 @@ export function Web3Provider({ children }) {
       setContract(contractInstance);
     } catch (error) {
       console.error('Web3 initialization error:', error);
-      alert(`Error connecting to network: ${error.message}`);
+      setContract(null);
+      setNetworkName('');
+      throw error; // Propagate the error to prevent further execution
     }
   };
 
   useEffect(() => {
-    const handleChainChanged = () => {
-      window.location.reload();
+    const handleChainChanged = (chainId) => {
+      const allowedChainIds = ['0xaa36a7', '0x106a'];
+      if (!allowedChainIds.includes(chainId)) {
+        alert('Network not supported - please switch to Sepolia or Lisk');
+        window.location.reload();
+      }
     };
 
     const handleAccountsChanged = (accounts) => {
