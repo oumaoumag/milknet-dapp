@@ -114,7 +114,7 @@ MilkNet promotes sustainable practices by:
 npm install
 
 # Run development server
-npm run dev
+npm start
 
 # Build for production
 npm run build
