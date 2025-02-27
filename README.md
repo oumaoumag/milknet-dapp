@@ -1,70 +1,168 @@
-# milknet
-MilkNet - Blockchain-Powered Dairy Supply Chain Platform
+# MilkNet - Blockchain-Powered Dairy Supply Chain Platform
 
+## Overview
 
-## Available Scripts
+MilkNet is a revolutionary platform designed to bring cutting-edge technology into the dairy industry. By leveraging blockchain, data analytics, and user-centric design, MilkNet aims to optimize supply chain management, enhance transparency, and streamline operations for all stakeholders involved in dairy production, distribution, and retail.
 
-In the project directory, you can run:
+**The app is currently deployed on Vercel and can be accessed here: [MilkNet](https://milknet.vercel.app/)**
 
-### `npm start`
+## Vision and Mission
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+MilkNet envisions a world where dairy supply chains are highly efficient, transparent, and equitable. The platform's mission is to empower farmers, distributors, retailers, and consumers with tools that:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- Enhance operational efficiency.
+- Ensure product quality and traceability.
+- Foster trust through transparent practices.
+- Reduce wastage and maximize profitability.
 
-### `npm test`
+## Features Implementation Status
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### ✅ Completed
 
-### `npm run build`
+- Waitlist page UI implementation
+- Form validation and submission handling
+- Responsive design
+- Motion animations
+- Features section with icons
+- Testimonials section
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 🚧 In Progress
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Smart contract integration
+- User authentication
+- Database setup
+- API endpoints
+- Footer component styling
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 📋 Planned
 
-### `npm run eject`
+- Dashboard interface
+- Blockchain transaction handling
+- Supply chain tracking
+- Analytics dashboard
+- Mobile app development
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Key Features
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 1. Blockchain-Based Transparency
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+MilkNet employs blockchain technology to ensure that all transactions and records within the supply chain are immutable and transparent. Key benefits include:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **Traceability:** Every step of the production process, from farm to consumer, is logged on the blockchain.
+- **Tamper-Proof Records:** Immutable ledgers prevent unauthorized modifications, enhancing trust among stakeholders.
+- **Real-Time Auditing:** Authorized parties can access real-time data to verify compliance with industry standards.
 
-## Learn More
+### 2. Smart Contracts
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Smart contracts automate agreements between parties, reducing manual intervention and errors. Examples include:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- **Automated Payments:** Farmers and distributors receive payments automatically when predefined conditions are met.
+- **Quality Assurance Contracts:** Payments are linked to quality metrics like milk fat content or freshness.
 
-### Code Splitting
+### 3. Data Analytics and Insights
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+MilkNet provides stakeholders with actionable insights using advanced data analytics. Key applications include:
 
-### Analyzing the Bundle Size
+- **Demand Forecasting:** Retailers can predict consumer demand and optimize inventory.
+- **Performance Monitoring:** Farmers can track metrics like milk yield and health indicators for livestock.
+- **Supply Chain Optimization:** Distributors can plan routes and schedules to minimize costs and maximize efficiency.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### 4. Farmer-Centric Tools
 
-### Making a Progressive Web App
+Farmers are at the heart of the dairy industry, and MilkNet equips them with tools to:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- **Monitor Livestock:** Sensors and IoT devices track health metrics like temperature, activity, and milk yield.
+- **Access Microloans:** Blockchain-based credit scoring enables access to affordable loans.
+- **Get Market Insights:** Farmers receive real-time price updates and demand forecasts.
 
-### Advanced Configuration
+### 5. Consumer Engagement
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+MilkNet enhances consumer trust and engagement by providing:
 
-### Deployment
+- **Product Authenticity:** QR codes on packaging allow consumers to trace the origin and journey of dairy products.
+- **Nutritional Transparency:** Detailed information about nutritional content and production methods is available.
+- **Feedback Mechanisms:** Consumers can provide feedback directly to producers, fostering a sense of community.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### 6. Sustainability and Waste Reduction
 
-### `npm run build` fails to minify
+MilkNet promotes sustainable practices by:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Tracking Carbon Footprint:** Stakeholders can monitor and reduce their environmental impact.
+- **Reducing Spoilage:** Real-time monitoring of storage conditions ensures product freshness.
+- **Encouraging Recycling:** Incentivizing the use of eco-friendly packaging materials.
+
+## Tech Stack
+
+### Frontend
+
+- React.js
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- Ethers.js
+
+### Smart Contracts
+
+- Solidity
+- Hardhat
+- OpenZeppelin
+
+## Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+## Project Structure
+
+```plaintext
+milknet/
+├── frontend/
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── pages/
+│   │   │   │   └── waitlist.tsx
+│   │   │   ├── components/
+│   │   │   │   └── footer.tsx
+│   │   │   └── utils/
+│   │   │       └── ethers.js
+│   │   └── styles/
+│   │       └── globals.css
+│   ├── public/
+│   │   └── images/
+│   └── next.config.ts
+└── backend
+    └──contracts/
+        └── ProductRegistration.sol
+```
+
+## Contributing
+
+We welcome contributions from the community. Please follow these steps to contribute:
+
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-branch`).
+3. Make your changes.
+4. Commit your changes (`git commit -m 'Add new feature'`).
+5. Push to the branch (`git push origin feature-branch`).
+6. Open a pull request.
+
+## Authors
+
+- **Audrey Pendo:** [Audrey Pend0](https://github.com/odree123)
+- **Ouma Ouma:** [Ouma Ouma](https://github.com/oumaoumag)
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+
+<!-- ## Contact
+
+For any inquiries or feedback, please contact us at [support@milknet.com](mailto:support@milknet.com). -->
