@@ -1,4 +1,3 @@
-// src/utils/contractCalls.js
 export const fetchBatches = async (contract) => {
   if (!contract) {
     console.error("Contract not initialized");
