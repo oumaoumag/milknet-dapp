@@ -3,7 +3,7 @@ import { useWeb3 } from '../../contexts/Web3Context';
 import { ethers } from 'ethers';
 import { fetchBatches } from '../../utils/contractCalls';
 import OrderModal from './../buyer/OrderModal';
-import FormatBatchData  from './FormatBatchData';
+import FormatBatchData, { formatDisplayPrice } from './FormatBatchData';
 
 export default function Marketplace() {
   const { contract } = useWeb3(); // Removed unused 'account'
@@ -80,7 +80,7 @@ export default function Marketplace() {
               <div className="card-body">
                 <div className="price-row">
                   <span>Price:</span>
-                  <span className="price">Ξ{batch.pricePerLiter}/L</span>
+                  <span className="price">Ξ{formatDisplayPrice(batch.pricePerLiter)}/L</span>
                 </div>
                 <div className="quantity-row">
                   <span>Available:</span>
@@ -88,7 +88,7 @@ export default function Marketplace() {
                 </div>
                 <button 
                   className="order-button"
-                  onClick={() => handleOrder(batch)} // Fixed parameter passing
+                  onClick={() => handleOrder(batch)}
                 >
                   Place Order
                 </button>
