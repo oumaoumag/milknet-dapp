@@ -1,13 +1,45 @@
 import { ethers } from 'ethers';
-import { createContext, useContext, useEffect, useState } from 'react';
-import { getContract } from '../utils/blockchain';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import MilkNetABI from '../utils/MilkNetABI.json';
 
 const Web3Context = createContext();
+
+const NETWORK_CONFIG = {
+  11155111: { // Sepolia network ID
+    name: "Sepolia",
+    contractAddress: process.env.REACT_APP_SEPOLIA_CONTRACT_ADDRESS
+  },
+  4202: { // Lisk Testnet
+    name: "LISK Testnet",
+    contractAddress: process.env.REACT_APP_LISK_CONTRACT_ADDRESS
+  }
+};
 
 export function Web3Provider({ children }) {
   const [account, setAccount] = useState('');
   const [contract, setContract] = useState(null);
   const [networkName, setNetworkName] = useState('');
+  
+  const disconnectWallet = () => {
+    setAccount('');
+    setContract(null);
+    setNetworkName('');
+  };
+
+  // Network switching function
+  const switchNetwork = async (targetNetworkId) => {
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: `0x${targetNetworkId.toString(16)}`  }],
+      });
+    } catch (error) {
+      if (error.code === 4902) {
+        console.log('Network not added to wallet');
+      }
+      console.error('Failed to switch network:', error);
+  }
+};
 
   const connectWallet = async () => {
     if (!window.ethereum) {
@@ -15,70 +47,53 @@ export function Web3Provider({ children }) {
       return;
     }
 
+
     try {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       setAccount(accounts[0]);
-      await initWeb3();
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await initWeb3(provider);
     } catch (error) {
       console.error('User rejected connection:', error);
       throw error;
     }
   };
 
-  const initWeb3 = async () => {
-    if (!window.ethereum) {
-      console.log('Please install MetaMask!');
-      return;
-    }
-
+  const initWeb3 = useCallback(async (provider) => {
     try {
-      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      const allowedNetworks = {
-        '0xaa36a7': 'Sepolia',    // Sepolia Testnet (11155111)
-        '0x106a': 'LISK'          // Lisk Testnet (4202)
-      };
-
-      const networkKey = allowedNetworks[chainId];
-      if (!networkKey) {
-        const message = `Please connect to one of: ${Object.values(allowedNetworks).join(', ')}`;
-        alert(message);
-        throw new Error(message);
+      const network = await provider.getNetwork();
+      const chainId = parseInt(network.chainId, 10);
+      const config = NETWORK_CONFIG[chainId];
+      
+      if (!config) {
+        throw new Error(`Unsupported network: ${network.name}`);
       }
 
-      // Get contract address from environment variables
-      const envVarName = `REACT_APP_${networkKey}_CONTRACT_ADDRESS`;
-      const contractAddress = process.env[envVarName];
-
-      if (!contractAddress) {
-        throw new Error(`Contract address not found for ${networkKey} network`);
-      }
-
-      console.log('Loading contract for:', envVarName);
-      console.log('Contract address:', contractAddress);
-
-      // Initialize provider and signer
-      const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
+      const contract = new ethers.Contract(
+        config.contractAddress,
+        MilkNetABI,
+        signer
+      );
 
-      // Initialize contract
-      const contractInstance = await getContract(contractAddress, signer);
+      // Verify contract connection
+      const batchCount = await contract.batchCounter();
+      console.log('Contract connection verified. Total batches:', batchCount.toString());
 
-      // Update state
-      setNetworkName(networkKey);
-      setContract(contractInstance);
+      setContract(contract);
+      setNetworkName(config.name);
     } catch (error) {
-      console.error('Web3 initialization error:', error);
+      console.error("Web3 initialization failed:", error);
       setContract(null);
-      setNetworkName('');
-      throw error; // Propagate the error to prevent further execution
+      throw new Error(`Failed to initialize Web3: ${error.message}`);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    const handleChainChanged = (chainId) => {
-      const allowedChainIds = ['0xaa36a7', '0x106a'];
-      if (!allowedChainIds.includes(chainId)) {
-        alert('Network not supported - please switch to Sepolia or Lisk');
+    const handleChainChanged = (chainIdHex) => {
+      const allowedChainIds = ['0xaa36a7', '0x106a']; // Sepolia (0xaa36a7) and Lisk (0x106a)
+      if (!allowedChainIds.includes(chainIdHex)) {
+        alert('Network not supported - please switch to Sepolia or Lisk Testnet');
         window.location.reload();
       }
     };
@@ -86,23 +101,31 @@ export function Web3Provider({ children }) {
     const handleAccountsChanged = (accounts) => {
       setAccount(accounts[0] || '');
       if (accounts[0]) {
-        initWeb3();
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        initWeb3(provider).catch(error => {
+          console.error('Web3 reinitialization error:', error);
+        });
       }
     };
 
-    // Add event listeners
     window.ethereum?.on('chainChanged', handleChainChanged);
     window.ethereum?.on('accountsChanged', handleAccountsChanged);
 
-    // Cleanup
     return () => {
       window.ethereum?.removeListener('chainChanged', handleChainChanged);
       window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
     };
-  }, []);
+  }, [initWeb3]);
 
   return (
-    <Web3Context.Provider value={{ account, contract, networkName, connectWallet }}>
+    <Web3Context.Provider value={{
+    account,
+    contract,
+    networkName,
+    connectWallet,
+    disconnectWallet,
+    switchNetwork
+     }}>
       {children}
     </Web3Context.Provider>
   );
