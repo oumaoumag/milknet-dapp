@@ -40,8 +40,8 @@ export default function OrderModal({ show, batch, onClose, onSubmit, status }) {
               type="number"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              min="0.1"
-              step="0.1"
+              min="1"
+              step="1"
             />
           </div>
           

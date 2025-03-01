@@ -17,6 +17,12 @@ export default function CreateBatch({ onClose }) {
       return;
     }
 
+    const priceWei = ethers.parseUnits(price, 'ether');
+    if (priceWei > ethers.MaxUint64) {
+      alert("Price per liter is too high")
+      return;
+    }
+
     try {
       // Calculate days until expiry
       const expiryDate = new Date(expiry);
@@ -24,10 +30,7 @@ export default function CreateBatch({ onClose }) {
       const timeDifference = expiryDate.getTime() - currentDate.getTime();
       const expiryDays = Math.ceil(timeDifference / (1000 * 3600 * 24));
 
-      // Get max allowed days from contract
-      // const maxExpiryDuration = await contract.maxExpiryDuration();
-      // const maxDays = Number(maxExpiryDuration) / 86400; // Convert seconds to days
-
+     
       if (expiryDays > 365) {
         alert(`Maximum expiry duration is 1 year (365 days)`);
         return;
@@ -35,8 +38,8 @@ export default function CreateBatch({ onClose }) {
 
       setIsLoading(true);
       await contract.registerMilkBatch(
-        ethers.parseUnits(quantity, 'wei'),
-        ethers.parseUnits(price, 'wei'),
+        ethers.parseUnits(quantity, 'ether'),
+        ethers.parseUnits(price, 'ether'),
         expiryDays
       );
       onClose();

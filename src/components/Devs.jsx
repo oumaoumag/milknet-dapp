@@ -30,8 +30,8 @@ export const Devs = () => {
   ]; 
 
   return (
-    <div className="container mx-auto min-h bg-gradient-to-br from-green-50 to-blue-50 p-10">
-      <h2 className="text-4xl font-bold text-center mb-12 text-black">
+    <div className="container mx-auto min-h p-10 bg-transparent">
+      <h2 className="text-4xl font-bold text-center mb-12 text-white">
         Meet Our Innovative Team
       </h2>
       
@@ -39,10 +39,10 @@ export const Devs = () => {
         {developers.map((dev, index) => (
           <div 
             key={index}
-            className={`bg-white rounded-2xl p-6 text-center transition-all duration-300 ${
+            className={`bg-transparent rounded-2xl p-6 text-center transition-all duration-300 ${
               activeProfile === index 
-                ? 'scale-105 shadow-2xl border-2 border-green-500' 
-                : 'hover:scale-105 hover:shadow-xl'
+                ? 'scale-105 shadow-2xl border-2 border-green-500 backdrop-blur-sm bg-white/5' 
+                : 'hover:scale-105 hover:shadow-xl backdrop-blur-sm bg-white/5'
             }`}
             onClick={() => setActiveProfile(index)}
             role="button"
@@ -56,16 +56,16 @@ export const Devs = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <h3 className="text-xl font-bold text-green-500">{dev.name}</h3>
-            <p className="text-gray-500 mb-2">{dev.role}</p>
-            <p className="text-black mb-4">{dev.bio}</p>
+            <h3 className="text-xl font-bold text-white">{dev.name}</h3>
+            <p className="text-gray-200 mb-2">{dev.role}</p>
+            <p className="text-white mb-4">{dev.bio}</p>
             
             <div className="flex justify-center space-x-4">
               <a 
                 href={dev.socialLinks.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-500"
+                className="text-blue-300 hover:text-blue-400"
               >
                 <Linkedin size={24} />
               </a>
@@ -73,7 +73,7 @@ export const Devs = () => {
                 href={dev.socialLinks.twitter}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-500"
+                className="text-blue-300 hover:text-blue-400"
               >
                 <Twitter size={24} />
               </a>
@@ -81,7 +81,7 @@ export const Devs = () => {
                 href={dev.socialLinks.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-400 hover:text-gray-300"
+                className="text-gray-300 hover:text-white"
               >
                 <Github size={24} />
               </a>

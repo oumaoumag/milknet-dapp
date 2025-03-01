@@ -49,13 +49,13 @@ export default function Marketplace() {
       const pricePerLiter = Number(selectedBatch.pricePerLiter);
       const totalPrice = ethers.parseUnits(
         (quantity * pricePerLiter).toString(),
-        'wei'
+        'ether'
       );
 
       const tx = await contract.placeOrder(
         selectedBatch.batchId,
-        ethers.parseUnits(quantity.toString(), 'wei'),
-        ethers.parseUnits(pricePerLiter.toString(), 'wei'),
+        ethers.parseUnits(quantity.toString(), 'ether'),
+        ethers.parseUnits(pricePerLiter.toString(), 'ether'),
         { value: totalPrice }
       );
 
