@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 export default function OrderModal({ show, batch, onClose, onSubmit, status }) {
   const [quantity, setQuantity] = useState('');
@@ -65,3 +66,12 @@ export default function OrderModal({ show, batch, onClose, onSubmit, status }) {
     </div>
   );
 }
+
+// Add PropTypes to OrderModal
+OrderModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  batch: PropTypes.object,
+  onClose: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  status: PropTypes.object.isRequired
+};
