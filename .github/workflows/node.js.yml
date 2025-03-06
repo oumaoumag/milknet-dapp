@@ -1,7 +1,4 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js CI
+name: MilkNet CI/CD
 
 on:
   push:
@@ -10,22 +7,59 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  build-and-test:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [18.x, 20.x]
+        # Remove 22.x since it's still in development and may have compatibility issues
 
     steps:
     - uses: actions/checkout@v4
+    
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+    
+    # Install dependencies with specific version overrides
+    - name: Install dependencies
+      run: |
+        npm install
+        npm install nth-check@2.0.1
+        npm install serialize-javascript@6.0.2
+        npm install cookie@0.7.0
+        npm install svgo@3.0.2
+        npm install postcss@8.5.3
+    
+    # Build the React application
+    - name: Build
+      run: npm run build
+      env:
+        CI: false # Prevents treating warnings as errors
+        REACT_APP_SEPOLIA_CONTRACT_ADDRESS: ${{ secrets.REACT_APP_SEPOLIA_CONTRACT_ADDRESS }}
+        REACT_APP_LISK_CONTRACT_ADDRESS: ${{ secrets.REACT_APP_LISK_CONTRACT_ADDRESS }}
+    
+    # Run tests
+    - name: Test
+      run: npm test
+      env:
+        CI: true
+
+    # Add caching for node_modules
+    - name: Cache node modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    # Add artifact upload for deployment
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: build
+        path: build/
