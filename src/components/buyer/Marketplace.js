@@ -1,19 +1,41 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWeb3 } from '../../contexts/Web3Context';
 import { ethers } from 'ethers';
 import { fetchBatches } from '../../utils/contractCalls';
-import OrderModal from './../buyer/OrderModal';
+import OrderModal from './OrderModal';
 import FormatBatchData from '../batches/FormatBatchData';
-
+import SkeletonLoader from '../SkeletonLoader';
 
 export default function Marketplace() {
-  const { contract} = useWeb3();
+  const { contract } = useWeb3();
   const [batches, setBatches] = useState([]);
-  const [isLoading,] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [txStatus, setTxStatus] = useState({ loading: false, error: null });
+
+  useEffect(() => {
+    const loadBatches = async () => {
+      try {
+        setIsLoading(true);
+        if (contract) {
+          const rawBatches = await fetchBatches(contract);
+          const formattedBatches = FormatBatchData(rawBatches);
+          setBatches(formattedBatches);
+          setError(null);
+        }
+      } catch (err) {
+        setError('Failed to load batches. Please try refreshing the page.');
+        console.error('Batch loading error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBatches();
+  }, [contract]);
 
   const handleOrder = (batch) => {
     setSelectedBatch(batch);
@@ -24,15 +46,16 @@ export default function Marketplace() {
     try {
       setTxStatus({ loading: true, error: null });
       
+      const pricePerLiter = Number(selectedBatch.pricePerLiter);
       const totalPrice = ethers.parseUnits(
-        (quantity * selectedBatch.pricePerLiter).toString(),
-        'wei'
+        (quantity * pricePerLiter).toString(),
+        'ether'
       );
 
       const tx = await contract.placeOrder(
         selectedBatch.batchId,
-        ethers.parseUnits(quantity.toString(), 'wei'),
-        ethers.parseUnits(selectedBatch.pricePerLiter, 'wei'),
+        ethers.parseUnits(quantity.toString(), 'ether'),
+        ethers.parseUnits(pricePerLiter.toString(), 'ether'),
         { value: totalPrice }
       );
 
@@ -52,10 +75,22 @@ export default function Marketplace() {
     <div className="marketplace">
       <h2>Available Milk Batches</h2>
       
-      {isLoading ? (
-        <div className="loading">Loading marketplace...</div>
+      {error ? (
+        <div className="error-message p-4 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      ) : isLoading ? (
+        <SkeletonLoader />
       ) : batches.length === 0 ? (
-        <div className="empty-state">No available batches found</div>
+        <div className="empty-state p-6 bg-gray-50 rounded-lg text-center">
+          <p className="text-gray-500 text-lg">No available milk batches found</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+          >
+            Refresh Marketplace
+          </button>
+        </div>
       ) : (
         <div className="market-grid">
           {batches.map((batch) => (
@@ -77,7 +112,7 @@ export default function Marketplace() {
                 </div>
                 <button 
                   className="order-button"
-                  onClick={() => handleOrder(batch.batchId, batch.pricePerLiter)}
+                  onClick={() => handleOrder(batch)}
                 >
                   Place Order
                 </button>
@@ -86,7 +121,7 @@ export default function Marketplace() {
           ))}
         </div>
       )}
-          <OrderModal
+      <OrderModal
         show={showOrderModal}
         batch={selectedBatch}
         onClose={() => setShowOrderModal(false)}
@@ -95,4 +130,30 @@ export default function Marketplace() {
       />
     </div>
   );
+}
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Marketplace Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="error-message p-4 bg-red-100 text-red-700 rounded-lg">
+          Failed to load marketplace. Please refresh the page.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }

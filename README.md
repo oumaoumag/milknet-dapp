@@ -9,6 +9,9 @@ MilkNet is a decentralized platform that connects farmers directly with consumer
 - **Frontend:** Deployed on Vercel - [MilkNet](https://milknet-dapp.vercel.app/)
 - **Smart Contracts:** Deployed on Lisk and Sepolia test networks
 
+https://sepolia-blockscout.lisk.com/tx/0x8be891f5cdcaa26e43026914a73cc8e3d22b22d3ed9fbc859eeebb797017d33d
+https://eth-sepolia.blockscout.com/tx/0x66eb9b50c0aecd4cad1d76564a9b0bd8e15bd523cd152df9a5ba14b4dde2cf01
+
 ---
 
 ## Vision & Mission
