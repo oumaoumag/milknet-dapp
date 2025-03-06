@@ -43,7 +43,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-green-600 mt-12 pt-8 text-center text-sm">
+      <div className="border-t border-green-600 mt-12 pt-8 text-center text-sm text-white">
         <p>© {new Date().getFullYear()} MilkNet. All rights reserved.</p>
       </div>
     </footer>
