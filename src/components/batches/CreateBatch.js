@@ -39,7 +39,7 @@ export default function CreateBatch({ onClose }) {
 
       setIsLoading(true);
       await contract.registerMilkBatch(
-        ethers.parseUnits(quantity, 'ether'),
+        quantity,
         ethers.parseUnits(price, 'ether'),
         expiryDays
       );
