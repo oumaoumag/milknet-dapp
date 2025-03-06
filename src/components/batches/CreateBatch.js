@@ -18,7 +18,8 @@ export default function CreateBatch({ onClose }) {
     }
 
     const priceWei = ethers.parseUnits(price, 'ether');
-    if (priceWei > ethers.MaxUint64) {
+    const MAX_UINT64 = (1n << 64n) - 1n;
+    if (priceWei > MAX_UINT64) {
       alert("Price per liter is too high")
       return;
     }
