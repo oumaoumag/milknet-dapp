@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useWeb3 } from '../../contexts/Web3Context';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
+import { form } from 'framer-motion/client';
 
 export default function FarmerRegistration() {
   const [formData, setFormData] = useState({
@@ -27,14 +28,10 @@ export default function FarmerRegistration() {
           } else {
             setRegistrationStatus('unregistered');
           }
-        } catch (error) {
-          // Handle unregistered case
-          if (error.code === 'CALL_EXCEPTION') {
+        } catch (error) {     
             setRegistrationStatus('unregistered');
-          } else {
             console.error('Registration check error:', error);
           }
-        }
       }
     };
     checkRegistration();
@@ -49,6 +46,18 @@ export default function FarmerRegistration() {
     
     setIsLoading(true);
     try {
+      if (formData.name.length < 2 || formData.name.length > 64) {
+        setError('Name must be between 2 and 64 characters');
+        return;
+      }
+      if (formData.location.length === 0 || formData.location.length > 32) {
+        setError('LOcation must be between 1 and 32 characters');
+        return;
+      }
+      if (!formData.certification) {
+        setError('Please upload a certification document');
+        return;
+      }
       const tx = await contract.registerFarmer(
         formData.name,
         formData.location,
@@ -113,11 +122,12 @@ export default function FarmerRegistration() {
           </div>
 
           <div>
-            <label className="block mb-2">Certification (PDF) *</label>
+            <label className="block mb-2">Certification (PDF or Image) *</label>
             <input
               type="file"
               onChange={(e) => {
                 const file = e.target.files[0];
+                if (file) {
                 const reader = new FileReader();
                 reader.onload = () => {
                   const bytes = new Uint8Array(reader.result);
@@ -125,6 +135,7 @@ export default function FarmerRegistration() {
                   setFormData({...formData, certification: hash});
                 };
                 reader.readAsArrayBuffer(file);
+              }
               }}
               className="w-full p-2 border rounded"
               disabled={isLoading}
