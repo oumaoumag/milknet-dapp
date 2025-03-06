@@ -22,7 +22,7 @@ export default function FarmerRegistration() {
       if (account && contract) {
         try {
           const farmerData = await contract.farmers(account);
-          if (farmerData.isRegistered) {
+          if (( Number(farmerData.flags) & 1)  !== 0) {
             setRegistrationStatus('already-registered');
           } else {
             setRegistrationStatus('unregistered');
@@ -121,20 +121,14 @@ export default function FarmerRegistration() {
                 const reader = new FileReader();
                 reader.onload = () => {
                   const bytes = new Uint8Array(reader.result);
-                  const hexString = Array.from(bytes)
-                    .map(byte => byte.toString(16).padStart(2, '0'))
-                    .join('');
-                  const fullHash = ethers.id('0x' + hexString);
-                  const bytes16Hash = fullHash.startsWith('0x') 
-                    ? fullHash.slice(0, 34)
-                    : `0x${fullHash.slice(0, 32)}`;
-                  setFormData({...formData, certification: bytes16Hash});
+                  const hash = ethers.keccak256(bytes)
+                  setFormData({...formData, certification: hash});
                 };
                 reader.readAsArrayBuffer(file);
               }}
               className="w-full p-2 border rounded"
               disabled={isLoading}
-              accept=".pdf"
+              accept=".pdf,image/*"
               required
             />
           </div>
