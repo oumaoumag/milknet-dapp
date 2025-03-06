@@ -3,15 +3,13 @@ import { useWeb3 } from '../../contexts/Web3Context';
 import { ethers } from 'ethers';
 import { fetchBatches } from '../../utils/contractCalls';
 import OrderModal from './OrderModal';
-import FormatBatchData from '../batches/FormatBatchData';
-import SkeletonLoader from '../SkeletonLoader';
+import FormatBatchData, { formatDisplayPrice } from '../batches/FormatBatchData';
 
 export default function Marketplace() {
   const { contract } = useWeb3();
   const [batches, setBatches] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [txStatus, setTxStatus] = useState({ loading: false, error: null });
@@ -46,17 +44,12 @@ export default function Marketplace() {
     try {
       setTxStatus({ loading: true, error: null });
       
-      const pricePerLiter = Number(selectedBatch.pricePerLiter);
-      const totalPrice = ethers.parseUnits(
-        (quantity * pricePerLiter).toString(),
-        'ether'
-      );
-
+      const quantityBN = ethers.toBigInt(quantity);
+      const totalPriceWei = quantityBN.mul(selectedBatch.pricePerLiterWei);
       const tx = await contract.placeOrder(
         selectedBatch.batchId,
-        ethers.parseUnits(quantity.toString(), 'ether'),
-        ethers.parseUnits(pricePerLiter.toString(), 'ether'),
-        { value: totalPrice }
+        quantityBN,
+        { value: totalPriceWei }
       );
 
       await tx.wait();
@@ -72,46 +65,62 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="marketplace">
-      <h2>Available Milk Batches</h2>
+    <div className="container px-4 sm:px-6 lg:px-8 py-8 mx-auto max-w-7xl">
+      <h2 className="text-3xl font-extrabold text-gray-900 mb-8 text-center sm:text-left">Available Milk Batches</h2>
       
       {error ? (
-        <div className="error-message p-4 bg-red-100 text-red-700 rounded-lg">
-          {error}
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg text-center my-8 shadow-sm border border-red-200">
+          <p className="font-medium">{error}</p>
         </div>
       ) : isLoading ? (
-        <SkeletonLoader />
+        <div className="flex justify-center items-center py-16">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-12 w-12 rounded-full bg-gray-200 mb-4"></div>
+            <p className="text-gray-500">Loading marketplace...</p>
+          </div>
+        </div>
       ) : batches.length === 0 ? (
-        <div className="empty-state p-6 bg-gray-50 rounded-lg text-center">
-          <p className="text-gray-500 text-lg">No available milk batches found</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-          >
-            Refresh Marketplace
-          </button>
+        <div className="bg-gray-50 rounded-xl p-8 text-center my-12 border border-gray-200">
+          <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+          </svg>
+          <p className="text-gray-600 text-lg font-medium">No available batches found</p>
+          <p className="text-gray-500 mt-2">Check back later for fresh milk batches</p>
         </div>
       ) : (
-        <div className="market-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mt-8">
           {batches.map((batch) => (
-            <div key={batch.batchId} className="market-card">
-              <div className="card-header">
-                <h3>{batch.farmerName || 'Farm Fresh Dairy'}</h3>
-                <span className={`freshness ${batch.daysRemaining > 3 ? 'good' : 'warning'}`}>
-                  {batch.daysRemaining}d remaining
+            <div 
+              key={batch.batchId} 
+              className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold text-gray-800 truncate">
+                  {batch.farmerName || 'Farm Fresh Dairy'}
+                </h3>
+                <span 
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    batch.daysRemaining > 3 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {batch.daysRemaining} days remaining
                 </span>
               </div>
-              <div className="card-body">
-                <div className="price-row">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b border-gray-100 text-gray-700">
                   <span>Price:</span>
-                  <span className="price">Ξ{batch.pricePerLiter}/L</span>
+                  <span className="text-yellow-600 font-bold">
+                    Ξ{formatDisplayPrice(batch.pricePerLiterWei)}/L
+                  </span>
                 </div>
-                <div className="quantity-row">
+                <div className="flex justify-between items-center text-gray-700">
                   <span>Available:</span>
-                  <span>{batch.quantity} Liters</span>
+                  <span className="font-medium">{batch.quantity} Liters</span>
                 </div>
                 <button 
-                  className="order-button"
+                  className="w-full py-3 mt-4 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 active:bg-yellow-700 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
                   onClick={() => handleOrder(batch)}
                 >
                   Place Order
@@ -130,30 +139,4 @@ export default function Marketplace() {
       />
     </div>
   );
-}
-
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error("Marketplace Error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="error-message p-4 bg-red-100 text-red-700 rounded-lg">
-          Failed to load marketplace. Please refresh the page.
-        </div>
-      );
-    }
-    return this.props.children;
-  }
 }
