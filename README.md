@@ -4,40 +4,6 @@
 
 MilkNet is a decentralized platform that connects farmers directly with consumers, ensuring transparency, quality, and fair pricing in the dairy supply chain. By leveraging blockchain technology, MilkNet enables secure transactions, real-time milk tracking, automated order management, and transparent dispute resolution—all without intermediaries.
 
-## Problem Statement
-
-Traditional dairy supply chains are opaque and inefficient, resulting in delayed payments and limited market access for farmers, while consumers struggle with quality verification and dispute resolution.
-
-## Challenges
-
-### For Farmers
-- **Payment Delays:** Slow and uncertain payments.
-- **Limited Market Access:** Difficulty reaching consumers directly.
-- **Intermediary Exploitation:** Reduced profit margins due to middlemen.
-
-### For Consumers
-- **Quality Concerns:** Uncertainty about milk purity and production practices.
-- **Lack of Transparency:** Insufficient information on milk origin and pricing.
-- **Inefficient Dispute Resolution:** Cumbersome processes for refunds and complaints.
-
-## Solution
-
-MilkNet addresses these challenges by:
-
-- **Streamlined Registration:** Quick onboarding for both farmers and consumers.
-- **Milk Tracking:** Unique blockchain IDs for complete traceability.
-- **Automated Management:** Smart contracts handle orders, payments, and record-keeping.
-- **Transparent Dispute Resolution:** Automated and visible resolution of refunds and disputes.
-
-## Target Audience
-
-- **Dairy Farmers:** Seeking direct market access and fair pricing.
-- **Consumers:** Looking for high-quality, verifiable dairy products.
-
-## Impact
-
-MilkNet empowers farmers and builds consumer trust by enhancing transparency and operational efficiency, paving the way for a more sustainable and equitable dairy industry.
-
 ## Deployment
 
 - **Frontend:** Deployed on Vercel - [MilkNet](https://milknet-dapp.vercel.app/)
