@@ -16,6 +16,11 @@ export default function CreateBatch({ onClose }) {
       alert('Please connect to a supported network');
       return;
     }
+    // validating quantity: must be a positive whole number
+    if (!/^\d+$/.test(quantity) || quantity === '') {
+      alert('Quantity must be a positive whole number');
+      return;
+    }
 
     const priceWei = ethers.parseUnits(price, 'ether');
     const MAX_UINT64 = (1n << 64n) - 1n;
@@ -68,6 +73,7 @@ export default function CreateBatch({ onClose }) {
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
             placeholder="Enter quantity in liters"
             min="1"
+            step="1"
             required
           />
         </div>
