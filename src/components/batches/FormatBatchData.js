@@ -22,5 +22,18 @@ export default function FormatBatchData(rawBatches) {
 
 // New helper function for price display
 export function formatDisplayPrice(priceWei) {
-  return parseFloat(ethers.formatUnits(priceWei, 'ether')).toFixed(4);
+  try {
+    // Handle case where priceWei might be a number or a string instead of BigInt
+    if (typeof priceWei === 'number' || (typeof priceWei === 'string' && priceWei.includes('.'))) {
+      // If it's already a number with decimals, just format it
+      return parseFloat(priceWei).toFixed(4);
+    }
+    
+    // Otherwise use ethers.formatUnits which expects a BigInt or string representation
+    return parseFloat(ethers.formatUnits(priceWei, 'ether')).toFixed(4);
+  } catch (error) {
+    console.error('Error formatting price:', error, priceWei, typeof priceWei);
+    // Return a fallback value
+    return '0.0000';
+  }
 }
