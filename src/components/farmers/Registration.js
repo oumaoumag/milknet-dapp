@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useWeb3 } from '../../contexts/Web3Context';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
-import { form } from 'framer-motion/client';
+
+// Ensure BigInt is available
+const BigInt = window.BigInt || global.BigInt;
 
 export default function FarmerRegistration() {
   const [formData, setFormData] = useState({
@@ -159,4 +161,4 @@ export default function FarmerRegistration() {
       )}
     </div>
   );
-}g
+}
