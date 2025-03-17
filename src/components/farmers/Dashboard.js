@@ -6,6 +6,7 @@ import { useOrders } from '../../hooks/useOrders';
 import { fetchBatches } from '../../utils/contractCalls';
 import { motion } from 'framer-motion';
 import BatchList from '../batches/BatchList';
+import ExpiredBatches from '../batches/ExpiredBatches';
 
 export default function FarmerDashboard() {
   const { contract, account } = useWeb3();
@@ -14,6 +15,8 @@ export default function FarmerDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const orders = useOrders(account);
+  const [totalBatches, setTotalBatches] = useState(0);
+  const [showExpiredBatches, setShowExpiredBatches] = useState(false);
 
   useEffect(() => {
     const loadFarmerData = async () => {
@@ -22,7 +25,13 @@ export default function FarmerDashboard() {
         try {
           const data = await contract.farmers(account);
           const allBatches = await fetchBatches(contract);
-          const farmerBatches = allBatches.filter(b => b.farmerAddress === account);
+          // Filter batches for current farmer and count only active ones
+          const farmerBatches = allBatches.filter(
+            batch => batch.farmerAddress.toLowerCase() === account.toLowerCase() && 
+            (Number(batch.flags) & 0x2) === 0  // Check if batch is not deleted
+          );
+          
+          setTotalBatches(farmerBatches.length);
           setFarmerData({ ...data, batches: farmerBatches });
         } catch (error) {
           console.error("Error loading farmer data:", error);
@@ -103,8 +112,8 @@ export default function FarmerDashboard() {
             {/* Stats Cards */}
             <StatsCard
               title="Total Batches"
-              value={farmerData.batches.length}
-              description="Registered milk batches"
+              value={totalBatches}
+              description="Active milk batches"
               icon="batch"
               color="green"
             />
@@ -150,16 +159,41 @@ export default function FarmerDashboard() {
           >
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Your Milk Batches</h2>
-              <button
-                onClick={() => setShowBatchForm(true)}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Register New Batch
-              </button>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowExpiredBatches(!showExpiredBatches)}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                >
+                  <svg 
+                    className="w-5 h-5" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="2" 
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+                    />
+                  </svg>
+                  {showExpiredBatches ? 'Hide Expired Batches' : 'Show Expired Batches'}
+                </button>
+                <button
+                  onClick={() => setShowBatchForm(true)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Register New Batch
+                </button>
+              </div>
             </div>
+
+            {/* Show expired batches when button is clicked */}
+            {showExpiredBatches && <ExpiredBatches />}
+
             {showBatchForm && (
               <CreateBatch onClose={() => setShowBatchForm(false)} />
             )}
