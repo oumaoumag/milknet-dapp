@@ -1,7 +1,7 @@
 import { useWeb3 } from '../contexts/Web3Context';
-import { useAuth, ROLES } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { toast } from 'react-toastify';
 import { formatBlockchainError } from '../utils/errorUtils';
