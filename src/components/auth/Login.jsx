@@ -10,7 +10,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [availableRoles, setAvailableRoles] = useState({isFarmer: false, isBuyer: false});
   const [checkingRoles, setCheckingRoles] = useState(false);
-  const { login, isAuthenticated, user, checkUserRoles } = useAuth();
+  const { login, isAuthenticated, checkUserRoles } = useAuth();
   const { account, connectWallet } = useWeb3();
   const navigate = useNavigate();
   const location = useLocation();
