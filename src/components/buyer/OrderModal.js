@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { ethToKes, kesToEth, formatKesAmount } from '../../utils/currencyUtils';
+import { ethToKes, kesToEth, formatKesAmount, safeEthFormat } from '../../utils/currencyUtils';
 
 export default function OrderModal({ show, batch, onClose, onSubmit, status }) {
   const [quantity, setQuantity] = useState('');
@@ -25,7 +25,7 @@ export default function OrderModal({ show, batch, onClose, onSubmit, status }) {
   if (!show || !batch) return null;
 
   const totalPriceETH = quantity && !isNaN(parseFloat(quantity)) 
-    ? (parseFloat(quantity) * parseFloat(batch.pricePerLiter)).toFixed(4) 
+    ? safeEthFormat(parseFloat(quantity) * parseFloat(batch.pricePerLiter), 8) 
     : '0.0000';
   
   const totalPriceKES = quantity && !isNaN(parseFloat(quantity)) 
