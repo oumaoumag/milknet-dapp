@@ -23,7 +23,7 @@ export default function FarmerRegistration() {
       if (account && contract) {
         try {
           const farmerData = await contract.farmers(account);
-          if (( Number(farmerData.flags) & 1)  !== 0) {
+          if ((BigInt(farmerData.flags) & BigInt(1)) !== BigInt(0)) {
             setRegistrationStatus('already-registered');
           } else {
             setRegistrationStatus('unregistered');
@@ -159,4 +159,4 @@ export default function FarmerRegistration() {
       )}
     </div>
   );
-}
+}g
