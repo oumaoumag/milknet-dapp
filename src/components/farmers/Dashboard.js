@@ -8,6 +8,9 @@ import { motion } from 'framer-motion';
 import BatchList from '../batches/BatchList';
 import ExpiredBatches from '../batches/ExpiredBatches';
 
+// Add this near the top of the file, after the imports
+const BigInt = window.BigInt || global.BigInt;
+
 export default function FarmerDashboard() {
   const { contract, account } = useWeb3();
   const [farmerData, setFarmerData] = useState(null);
