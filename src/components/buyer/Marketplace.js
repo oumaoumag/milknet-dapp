@@ -5,9 +5,10 @@ import { fetchBatches } from '../../utils/contractCalls';
 import OrderModal from './OrderModal';
 import FormatBatchData, { formatDisplayPrice } from '../batches/FormatBatchData';
 import { kesToEth, ethToKes, formatKesAmount } from '../../utils/currencyUtils';
+import { toast } from 'react-toastify';
 
 export default function Marketplace() {
-  const { contract } = useWeb3();
+  const { contract, account } = useWeb3();
   const [batches, setBatches] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,6 +16,7 @@ export default function Marketplace() {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [txStatus, setTxStatus] = useState({ loading: false, error: null });
   const [displayCurrency, setDisplayCurrency] = useState('ETH'); // Default display currency
+  const [deletingBatchId, setDeletingBatchId] = useState(null);
 
   useEffect(() => {
     const loadBatches = async () => {
@@ -42,6 +44,27 @@ export default function Marketplace() {
     setShowOrderModal(true);
   };
 
+  const handleDeleteBatch = async (batchId) => {
+    if (!contract) return;
+    
+    try {
+      setDeletingBatchId(batchId);
+      const tx = await contract.deleteBatch(batchId);
+      await tx.wait();
+      
+      // Refresh the list
+      const rawBatches = await fetchBatches(contract);
+      setBatches(FormatBatchData(rawBatches));
+      
+      toast.success('Batch successfully deleted');
+    } catch (err) {
+      console.error('Error deleting batch:', err);
+      toast.error('Failed to delete batch: ' + err.message);
+    } finally {
+      setDeletingBatchId(null);
+    }
+  };
+
   const placeOrder = async (quantity, currencyMode) => {
     try {
       setTxStatus({ loading: true, error: null });
@@ -53,7 +76,8 @@ export default function Marketplace() {
       }
 
       const quantityBN = ethers.toBigInt(finalQuantity);
-      const totalPriceWei = quantityBN.mul(selectedBatch.pricePerLiterWei);
+      // Use * operator for BigInt multiplication instead of .mul()
+      const totalPriceWei = quantityBN * ethers.toBigInt(selectedBatch.pricePerLiterWei);
       const tx = await contract.placeOrder(
         selectedBatch.batchId,
         quantityBN,
@@ -154,12 +178,33 @@ export default function Marketplace() {
                   <span>Available:</span>
                   <span className="font-medium">{batch.quantity} Liters</span>
                 </div>
-                <button 
-                  className="w-full py-3 mt-4 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 active:bg-yellow-700 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
-                  onClick={() => handleOrder(batch)}
-                >
-                  Place Order
-                </button>
+                <div className="flex flex-col space-y-2 mt-4">
+                  <button 
+                    className="w-full py-3 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 active:bg-yellow-700 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
+                    onClick={() => handleOrder(batch)}
+                  >
+                    Place Order
+                  </button>
+                  
+                  {/* Delete Button - Only visible to the farmer who created the batch */}
+                  {account && account.toLowerCase() === batch.farmerAddress.toLowerCase() && (
+                    <button 
+                      className="w-full py-3 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 active:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50 flex justify-center items-center"
+                      onClick={() => handleDeleteBatch(batch.batchId)}
+                      disabled={deletingBatchId === batch.batchId}
+                    >
+                      {deletingBatchId === batch.batchId ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Deleting...
+                        </>
+                      ) : 'Delete Batch'}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
