@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useWeb3 } from './Web3Context';
 import { ethers } from 'ethers';
-import { toast } from 'react-toastify';
+
+const BigInt = window.BigInt || global.BigInt;
 
 const AuthContext = createContext();
 
@@ -192,7 +193,7 @@ export function AuthProvider({ children }) {
     
     try {
       // Check what roles the user has
-      const { isFarmer, isBuyer, buyerName } = await checkUserRoles();
+      const { isFarmer, isBuyer } = await checkUserRoles();
       
       if (role === ROLES.FARMER) {
         if (!isFarmer) {
