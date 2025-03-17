@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import { fetchBatches } from '../../utils/contractCalls';
 import OrderModal from './OrderModal';
 import FormatBatchData, { formatDisplayPrice } from '../batches/FormatBatchData';
+import { kesToEth, ethToKes, formatKesAmount } from '../../utils/currencyUtils';
 
 export default function Marketplace() {
   const { contract } = useWeb3();
@@ -13,6 +14,7 @@ export default function Marketplace() {
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [txStatus, setTxStatus] = useState({ loading: false, error: null });
+  const [displayCurrency, setDisplayCurrency] = useState('ETH'); // Default display currency
 
   useEffect(() => {
     const loadBatches = async () => {
@@ -40,11 +42,17 @@ export default function Marketplace() {
     setShowOrderModal(true);
   };
 
-  const placeOrder = async (quantity) => {
+  const placeOrder = async (quantity, currencyMode) => {
     try {
       setTxStatus({ loading: true, error: null });
       
-      const quantityBN = ethers.toBigInt(quantity);
+      // Convert KES to ETH if necessary
+      let finalQuantity = quantity;
+      if (currencyMode === 'KES') {
+        finalQuantity = quantity; // The quantity is still in liters, only the display price changes
+      }
+
+      const quantityBN = ethers.toBigInt(finalQuantity);
       const totalPriceWei = quantityBN.mul(selectedBatch.pricePerLiterWei);
       const tx = await contract.placeOrder(
         selectedBatch.batchId,
@@ -66,7 +74,25 @@ export default function Marketplace() {
 
   return (
     <div className="container px-4 sm:px-6 lg:px-8 py-8 mx-auto max-w-7xl">
-      <h2 className="text-3xl font-extrabold text-gray-900 mb-8 text-center sm:text-left">Available Milk Batches</h2>
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-3xl font-extrabold text-gray-900 text-center sm:text-left">Available Milk Batches</h2>
+        <div className="inline-flex rounded-md shadow-sm">
+          <button
+            type="button"
+            onClick={() => setDisplayCurrency('ETH')}
+            className={`px-3 py-2 text-sm font-medium rounded-l-lg ${displayCurrency === 'ETH' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+          >
+            ETH
+          </button>
+          <button
+            type="button"
+            onClick={() => setDisplayCurrency('KES')}
+            className={`px-3 py-2 text-sm font-medium rounded-r-lg ${displayCurrency === 'KES' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+          >
+            KES
+          </button>
+        </div>
+      </div>
       
       {error ? (
         <div className="bg-red-50 text-red-600 p-4 rounded-lg text-center my-8 shadow-sm border border-red-200">
@@ -111,9 +137,18 @@ export default function Marketplace() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center pb-2 border-b border-gray-100 text-gray-700">
                   <span>Price:</span>
-                  <span className="text-yellow-600 font-bold">
-                    Ξ{formatDisplayPrice(batch.pricePerLiterWei)}/L
-                  </span>
+                  <div className="text-right">
+                    <span className="text-yellow-600 font-bold block">
+                      {displayCurrency === 'ETH' ? 
+                        `Ξ${formatDisplayPrice(batch.pricePerLiterWei)}/L` : 
+                        `${formatKesAmount(ethToKes(batch.pricePerLiter))}/L`}
+                    </span>
+                    <span className="text-gray-500 text-xs block">
+                      {displayCurrency === 'ETH' ? 
+                        `${formatKesAmount(ethToKes(batch.pricePerLiter))}/L` : 
+                        `Ξ${formatDisplayPrice(batch.pricePerLiterWei)}/L`}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex justify-between items-center text-gray-700">
                   <span>Available:</span>

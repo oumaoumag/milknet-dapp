@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { ethToKes, kesToEth, formatKesAmount } from '../../utils/currencyUtils';
 
 export default function OrderModal({ show, batch, onClose, onSubmit, status }) {
   const [quantity, setQuantity] = useState('');
+  const [currencyMode, setCurrencyMode] = useState('ETH'); // 'ETH' or 'KES'
 
   const validateInput = () => {
     const qty = parseFloat(quantity);
@@ -17,14 +19,18 @@ export default function OrderModal({ show, batch, onClose, onSubmit, status }) {
     if (error) {
       return alert(error);
     }
-    onSubmit(quantity);
+    onSubmit(quantity, currencyMode);
   };
 
   if (!show || !batch) return null;
 
-  const totalPrice = quantity && !isNaN(parseFloat(quantity)) 
+  const totalPriceETH = quantity && !isNaN(parseFloat(quantity)) 
     ? (parseFloat(quantity) * parseFloat(batch.pricePerLiter)).toFixed(4) 
     : '0.0000';
+  
+  const totalPriceKES = quantity && !isNaN(parseFloat(quantity)) 
+    ? ethToKes(parseFloat(quantity) * parseFloat(batch.pricePerLiter)) 
+    : 0;
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -44,9 +50,27 @@ export default function OrderModal({ show, batch, onClose, onSubmit, status }) {
         <div className="p-6 space-y-4">
           <div className="flex justify-between items-center pb-2 border-b border-gray-100 text-gray-700">
             <span>Price per Liter:</span>
-            <span className="text-yellow-600 font-bold">
-              Ξ{batch.pricePerLiter}
-            </span>
+            <div>
+              <span className="text-yellow-600 font-bold mr-2">
+                {currencyMode === 'ETH' ? `Ξ${batch.pricePerLiter}` : formatKesAmount(ethToKes(batch.pricePerLiter))}
+              </span>
+              <div className="inline-flex rounded-md shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setCurrencyMode('ETH')}
+                  className={`px-2 py-1 text-xs font-medium rounded-l-lg ${currencyMode === 'ETH' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  ETH
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrencyMode('KES')}
+                  className={`px-2 py-1 text-xs font-medium rounded-r-lg ${currencyMode === 'KES' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  KES
+                </button>
+              </div>
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -64,7 +88,7 @@ export default function OrderModal({ show, batch, onClose, onSubmit, status }) {
           <div className="flex justify-between items-center pt-2 border-t border-gray-100 text-gray-700">
             <span className="font-medium">Total:</span>
             <span className="text-yellow-600 font-bold">
-              Ξ{totalPrice}
+              {currencyMode === 'ETH' ? `Ξ${totalPriceETH}` : formatKesAmount(totalPriceKES)}
             </span>
           </div>
         </div>

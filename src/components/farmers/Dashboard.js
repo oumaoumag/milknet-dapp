@@ -27,9 +27,16 @@ export default function FarmerDashboard() {
           const allBatches = await fetchBatches(contract);
           // Filter batches for current farmer and count only active ones
           const farmerBatches = allBatches.filter(
-            batch => batch.farmerAddress.toLowerCase() === account.toLowerCase() && 
-            (Number(batch.flags) & 0x2) === 0  // Check if batch is not deleted
+            batch => 
+              batch.farmerAddress.toLowerCase() === account.toLowerCase() && 
+              (Number(batch.flags) & 0x1) === 0x1 && // Check if batch is active
+              (Number(batch.flags) & 0x2) === 0 &&    // Check if batch is not deleted
+              Number(batch.expiryDate) > Math.floor(Date.now() / 1000) // Check if not expired
           );
+          
+          console.log('All batches:', allBatches);
+          console.log('Farmer batches:', farmerBatches);
+          console.log('Current account:', account);
           
           setTotalBatches(farmerBatches.length);
           setFarmerData({ ...data, batches: farmerBatches });
