@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 import { useWeb3 } from '../../contexts/Web3Context';
+import { kesToEth, ethToKes, safeEthFormat } from '../../utils/currencyUtils';
 
 export default function CreateBatch({ onClose }) {
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
   const [expiry, setExpiry] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currencyType, setCurrencyType] = useState('ETH'); // Default to ETH
 
   const { contract } = useWeb3();
 
@@ -22,7 +24,14 @@ export default function CreateBatch({ onClose }) {
       return;
     }
 
-    const priceWei = ethers.parseUnits(price, 'ether');
+    // Convert price to ETH if needed, then to Wei
+    let priceInEth = price;
+    if (currencyType === 'KSH') {
+      // Use the safe ETH formatter to avoid decimal precision errors
+      priceInEth = safeEthFormat(kesToEth(price), 18);
+    }
+    
+    const priceWei = ethers.parseUnits(priceInEth, 'ether');
     const MAX_UINT64 = (1n << 64n) - 1n;
     if (priceWei > MAX_UINT64) {
       alert("Price per liter is too high")
@@ -43,9 +52,16 @@ export default function CreateBatch({ onClose }) {
       }
 
       setIsLoading(true);
+      // Convert to ETH if price is in KSH
+      let finalPrice = price;
+      if (currencyType === 'KSH') {
+        // Use the safe ETH formatter to avoid decimal precision errors
+        finalPrice = safeEthFormat(kesToEth(price), 18);
+      }
+
       await contract.registerMilkBatch(
         quantity,
-        ethers.parseUnits(price, 'ether'),
+        ethers.parseUnits(finalPrice, 'ether'),
         expiryDays
       );
       onClose();
@@ -80,18 +96,53 @@ export default function CreateBatch({ onClose }) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Price per Liter (ETH)
+            Price per Liter
           </label>
-          <input
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            placeholder="Enter price per liter"
-            step="0.0001"
-            min="0.0001"
-            required
-          />
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                placeholder={`Enter price per liter in ${currencyType}`}
+                step={currencyType === 'ETH' ? "0.0001" : "1"}
+                min={currencyType === 'ETH' ? "0.0001" : "1"}
+                required
+              />
+            </div>
+            <div className="w-24">
+              <select
+                value={currencyType}
+                onChange={(e) => {
+                  const newCurrency = e.target.value;
+                  // Convert price value when switching currency type
+                  if (price && price !== '') {
+                    if (newCurrency === 'KSH' && currencyType === 'ETH') {
+                      setPrice(Math.round(ethToKes(price)).toString());
+                    } else if (newCurrency === 'ETH' && currencyType === 'KSH') {
+                      setPrice(kesToEth(price).toFixed(4));
+                    }
+                  }
+                  setCurrencyType(newCurrency);
+                }}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="ETH">ETH</option>
+                <option value="KSH">KSH</option>
+              </select>
+            </div>
+          </div>
+          {currencyType === 'KSH' && price && (
+            <p className="text-xs text-gray-500 mt-1">
+              Equivalent: ~{kesToEth(price).toFixed(6)} ETH
+            </p>
+          )}
+          {currencyType === 'ETH' && price && (
+            <p className="text-xs text-gray-500 mt-1">
+              Equivalent: ~{Math.round(ethToKes(price)).toLocaleString()} KSH
+            </p>
+          )}
         </div>
 
         <div>
