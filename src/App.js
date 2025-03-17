@@ -15,7 +15,9 @@ import ErrorBoundary from './components/ErrorBoundary.js';
 import { useAuth } from './contexts/AuthContext';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
+import RoleSelector from './components/auth/RoleSelector';
 import BuyerDashboard from './components/buyer/Dashboard';
+import FileDispute from './components/disputes/FileDispute';
 
 // Protected route component
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -35,6 +37,26 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   return children;
 };
 
+// Component to handle wallet connected users that aren't logged in
+const ConnectedRoute = ({ children }) => {
+  const { user, isAuthenticated } = useAuth();
+  const { account } = useWeb3();
+  const location = useLocation();
+
+  // If already authenticated, proceed to the intended destination
+  if (isAuthenticated) {
+    return children;
+  }
+
+  // If wallet is connected but not authenticated, redirect to role selector
+  if (account && !isAuthenticated) {
+    return <Navigate to="/select-role" state={{ from: location }} replace />;
+  }
+
+  // If no wallet is connected, redirect to login
+  return <Navigate to="/login" state={{ from: location }} replace />;
+};
+
 function App() {
   return (
     <Web3Provider>
@@ -47,6 +69,7 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/about" element={<AboutUs />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/select-role" element={<RoleSelector />} />
               <Route path="/register" element={<Register />} />
               <Route path="/register-farmer" element={<FarmerRegistration />} />
               <Route path="/farmer" element={
@@ -55,13 +78,25 @@ function App() {
                 </ProtectedRoute>
               } />
               <Route path="/marketplace" element={
-                <ErrorBoundary>
-                  <Marketplace />
-                </ErrorBoundary>
+                <ConnectedRoute>
+                  <ErrorBoundary>
+                    <Marketplace />
+                  </ErrorBoundary>
+                </ConnectedRoute>
               } />
               <Route path="/buyer-dashboard" element={
                 <ProtectedRoute requiredRole={ROLES.BUYER}>
                   <BuyerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <Navigate to="/buyer-dashboard" replace />
+              } />
+              <Route path="/dispute/:orderId" element={
+                <ProtectedRoute requiredRole={ROLES.BUYER}>
+                  <ErrorBoundary>
+                    <FileDispute />
+                  </ErrorBoundary>
                 </ProtectedRoute>
               } />
             </Routes>
