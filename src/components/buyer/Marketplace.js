@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useWeb3 } from '../../contexts/Web3Context';
 import { ethers } from 'ethers';
 import { fetchBatches } from '../../utils/contractCalls';
+import { formatBlockchainError } from '../../utils/errorUtils';
 import OrderModal from './OrderModal';
 import FormatBatchData, { formatDisplayPrice } from '../batches/FormatBatchData';
-import { kesToEth, ethToKes, formatKesAmount } from '../../utils/currencyUtils';
+import { kesToEth, ethToKes, formatKesAmount, safeEthFormat } from '../../utils/currencyUtils';
 import { toast } from 'react-toastify';
 
 export default function Marketplace() {
@@ -59,7 +60,7 @@ export default function Marketplace() {
       toast.success('Batch successfully deleted');
     } catch (err) {
       console.error('Error deleting batch:', err);
-      toast.error('Failed to delete batch: ' + err.message);
+      toast.error('Failed to delete batch: ' + formatBlockchainError(err));
     } finally {
       setDeletingBatchId(null);
     }
@@ -92,7 +93,8 @@ export default function Marketplace() {
       setBatches(FormatBatchData(rawBatches));
       
     } catch (error) {
-      setTxStatus({ loading: false, error: error.message });
+      console.error('Error placing order:', error);
+      setTxStatus({ loading: false, error: formatBlockchainError(error) });
     }
   };
 
