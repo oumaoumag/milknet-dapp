@@ -1,5 +1,5 @@
 import "./App.css"
-import { Web3Provider } from './contexts/Web3Context.js';
+import { Web3Provider, useWeb3 } from './contexts/Web3Context.js';
 import { AuthProvider, ROLES } from './contexts/AuthContext.js';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
