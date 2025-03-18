@@ -62,7 +62,19 @@ function App() {
     <Web3Provider>
       <BrowserRouter>
         <AuthProvider>
-          <ToastContainer position="top-right" autoClose={5000} />
+          <ToastContainer 
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+            toastClassName="custom-toast"
+          />
           <Header />
           <main className="min-h-screen">
             <Routes>
