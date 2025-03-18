@@ -1,6 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
 import { Devs } from './Devs';
+import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, 
   Shield, 
@@ -18,6 +19,8 @@ import {
 } from 'lucide-react';
 
 export default function AboutUs() {
+  const navigate = useNavigate();
+  
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
@@ -137,6 +140,7 @@ export default function AboutUs() {
             className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-all flex items-center mx-auto"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/select-role')}
           >
             Join Our Platform
             <ArrowRight className="ml-2 w-5 h-5" />
@@ -419,6 +423,12 @@ export default function AboutUs() {
             <motion.div 
               className="flex items-center text-green-600 cursor-pointer group font-medium"
               whileHover={{ x: 5 }}
+              onClick={() => {
+                const technicalSection = document.querySelector('#technical-implementation');
+                if (technicalSection) {
+                  technicalSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
             >
               Learn more about our vision
               <ArrowRight className="ml-2 group-hover:translate-x-2 transition-transform" />
@@ -438,6 +448,7 @@ export default function AboutUs() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9 }}
+        id="technical-implementation"
       >
         <div className="container mx-auto text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to Join the Milk Revolution?</h2>
@@ -449,6 +460,7 @@ export default function AboutUs() {
               className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-all"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/register-farmer')}
             >
               Join as Farmer
             </motion.button>
@@ -456,6 +468,7 @@ export default function AboutUs() {
               className="bg-transparent hover:bg-green-800 border-2 border-white text-white font-bold py-3 px-8 rounded-lg transition-all"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/register', { state: { role: 'BUYER' } })}
             >
               Join as Buyer
             </motion.button>
@@ -463,6 +476,7 @@ export default function AboutUs() {
               className="bg-white hover:bg-gray-100 text-green-800 font-bold py-3 px-8 rounded-lg transition-all"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/marketplace')}
             >
               Explore Marketplace
             </motion.button>

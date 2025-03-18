@@ -1,4 +1,3 @@
-/* global BigInt */
 import React, { useState, useEffect } from 'react';
 import { useWeb3 } from '../../contexts/Web3Context';
 import { ethers } from 'ethers';
@@ -7,19 +6,8 @@ import { formatBlockchainError } from '../../utils/errorUtils';
 import { toast } from 'react-toastify';
 import FormatBatchData, { formatDisplayPrice } from '../batches/FormatBatchData';
 import OrderModal from './OrderModal';
-import { kesToEth, ethToKes, formatKesAmount, safeEthFormat } from '../../utils/currencyUtils';
+import { ethToKes, formatKesAmount, safeEthFormat, CURRENT_ETH_TO_KES_RATE } from '../../utils/currencyUtils';
 import { motion } from 'framer-motion';
-
-// Define a more realistic ETH to KES conversion rate
-// 1 ETH = ~155,000 KES (as of March 2023)
-const ETH_TO_KES_RATE = 155000;
-
-// Helper function for proper ETH to KES conversion
-const convertEthToKes = (ethAmount) => {
-  // Parse the ETH amount as a float and multiply by the conversion rate
-  const ethValue = parseFloat(ethAmount) || 0;
-  return ethValue * ETH_TO_KES_RATE;
-};
 
 // Helper function to format KES with commas
 const formatKesPrice = (kesAmount) => {
@@ -304,7 +292,7 @@ export default function Marketplace() {
                     <span className="font-semibold text-green-600">
                       {displayCurrency === 'ETH' 
                         ? `Ξ${formatDisplayPrice(batch.pricePerLiter)}` 
-                        : formatKesPrice(convertEthToKes(batch.pricePerLiter))}
+                        : formatKesPrice(ethToKes(batch.pricePerLiter))}
                     </span>
                   </div>
                   

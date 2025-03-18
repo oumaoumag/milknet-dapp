@@ -6,7 +6,6 @@ import { ethers } from 'ethers';
  * @returns {string} - A user-friendly error message
  */
 export const formatBlockchainError = (error) => {
-  // Default error message
   let userFriendlyMessage = 'An error occurred while processing your transaction. Please try again.';
   
   // Check if error message exists

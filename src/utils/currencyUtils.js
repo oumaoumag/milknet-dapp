@@ -1,5 +1,5 @@
 // Currency conversion utilities
-const ETH_TO_KES_RATE = 155000; // Example rate: 1 ETH = 155,000 KES
+const ETH_TO_KES_RATE = 242915.22; // Current rate as of latest data from Google Finance
 
 /**
  * Formats a price value for display with appropriate decimal places
@@ -106,6 +106,9 @@ export function formatKesAmount(amount) {
     maximumFractionDigits: 0
   }).format(parsedAmount);
 }
+
+// Export the rate constant so it can be imported elsewhere
+export const CURRENT_ETH_TO_KES_RATE = ETH_TO_KES_RATE;
 
 /**
  * Safely formats an Ethereum value with appropriate decimal precision for blockchain transactions
