@@ -1,4 +1,4 @@
-gi/**
+/**
  * Format a Unix timestamp to a readable date string
  * @param {number|string} timestamp - Unix timestamp in seconds
  * @returns {string} Formatted date string
