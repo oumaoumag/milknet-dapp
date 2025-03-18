@@ -16,6 +16,8 @@ const NETWORK_CONFIG = {
   }
 };
 
+const ETH_TO_KES_RATE = 155000; // 1 ETH ≈ 155,000 KES
+
 export function Web3Provider({ children }) {
   const [account, setAccount] = useState('');
   const [contract, setContract] = useState(null);
@@ -193,6 +195,11 @@ export function Web3Provider({ children }) {
       throw new Error(`Failed to initialize Web3: ${error.message}`);
     }
   }, []);
+
+  const convertEthToKes = (ethAmount) => {
+    const ethValue = parseFloat(ethAmount) || 0;
+    return ethValue * ETH_TO_KES_RATE;
+  };
 
   useEffect(() => {
     const handleChainChanged = (chainIdHex) => {
