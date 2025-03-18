@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Linkedin, Twitter, Github } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const Devs = () => {
   const [activeProfile, setActiveProfile] = useState(0);
@@ -30,65 +31,100 @@ export const Devs = () => {
   ]; 
 
   return (
-    <div className="container mx-auto min-h p-10 bg-transparent">
-      <h2 className="text-4xl font-bold text-center mb-12 text-white">
-        Meet Our Innovative Team
-      </h2>
+    <div className="container mx-auto py-16 px-4">
+      <h2 className="text-4xl font-bold text-center mb-4 text-gray-800">Meet Our Team</h2>
+      <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+        Our talented blockchain developers and industry experts are dedicated to revolutionizing the dairy supply chain
+      </p>
       
-      <div className="grid md:grid-cols-2 gap-20">
+      <div className="grid md:grid-cols-2 gap-8">
         {developers.map((dev, index) => (
-          <div 
+          <motion.div 
             key={index}
-            className={`bg-transparent rounded-2xl p-6 text-center transition-all duration-300 ${
+            className={`bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-lg transition-all ${
               activeProfile === index 
-                ? 'scale-105 shadow-2xl border-2 border-green-500 backdrop-blur-sm bg-white/5' 
-                : 'hover:scale-105 hover:shadow-xl backdrop-blur-sm bg-white/5'
+                ? 'border-l-4 border-green-600' 
+                : ''
             }`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 * index }}
+            whileHover={{ y: -10 }}
             onClick={() => setActiveProfile(index)}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && setActiveProfile(index)}
           >
-            <div className="w-48 h-48 mx-auto mb-4 overflow-hidden rounded-full">
-              <img 
-                src={dev.image}
-                alt={dev.name}
-                className="w-full h-full object-cover"
-              />
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              {/* Profile image */}
+              <div className="w-24 h-24 rounded-full overflow-hidden flex-shrink-0">
+                <img 
+                  src={dev.image}
+                  alt={dev.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              {/* Content */}
+              <div className="flex-grow text-center md:text-left">
+                <h3 className="text-xl font-bold text-gray-800">{dev.name}</h3>
+                <p className="text-green-600 font-medium mb-2">{dev.role}</p>
+                <p className="text-gray-600 mb-4">{dev.bio}</p>
+                
+                <div className="flex justify-center md:justify-start space-x-4">
+                  <a 
+                    href={dev.socialLinks.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-500 hover:text-blue-600 transition-colors"
+                    aria-label="LinkedIn"
+                  >
+                    <Linkedin size={20} />
+                  </a>
+                  <a 
+                    href={dev.socialLinks.twitter}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-500 hover:text-blue-400 transition-colors"
+                    aria-label="Twitter"
+                  >
+                    <Twitter size={20} />
+                  </a>
+                  <a 
+                    href={dev.socialLinks.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-500 hover:text-gray-800 transition-colors"
+                    aria-label="GitHub"
+                  >
+                    <Github size={20} />
+                  </a>
+                </div>
+              </div>
             </div>
-            <h3 className="text-xl font-bold text-white">{dev.name}</h3>
-            <p className="text-gray-200 mb-2">{dev.role}</p>
-            <p className="text-white mb-4">{dev.bio}</p>
-            
-            <div className="flex justify-center space-x-4">
-              <a 
-                href={dev.socialLinks.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-300 hover:text-blue-400"
-              >
-                <Linkedin size={24} />
-              </a>
-              <a 
-                href={dev.socialLinks.twitter}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-300 hover:text-blue-400"
-              >
-                <Twitter size={24} />
-              </a>
-              <a 
-                href={dev.socialLinks.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white"
-              >
-                <Github size={24} />
-              </a>
-            </div>
-          </div>
+          </motion.div>
         ))}
       </div>
+      
+      {/* Join Our Team card */}
+      <motion.div 
+        className="mt-12 bg-gradient-to-r from-green-900 to-green-700 rounded-xl p-8 shadow-md text-white text-center max-w-2xl mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <h3 className="text-2xl font-bold mb-4">Join Our Team</h3>
+        <p className="mb-6">
+          We're looking for talented blockchain developers and dairy industry experts to help us transform supply chains
+        </p>
+        <motion.button 
+          className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-all"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          View Openings
+        </motion.button>
+      </motion.div>
     </div>
   );
 };
