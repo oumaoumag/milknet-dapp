@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import MilkNetABI from '../utils/MilkNetABI.json';
 import { toast } from 'react-toastify';
+import { ethToKes, CURRENT_ETH_TO_KES_RATE } from '../utils/currencyUtils';
 
 const Web3Context = createContext();
 
@@ -15,8 +16,6 @@ const NETWORK_CONFIG = {
     contractAddress: process.env.REACT_APP_LISK_CONTRACT_ADDRESS
   }
 };
-
-const ETH_TO_KES_RATE = 155000; // 1 ETH ≈ 155,000 KES
 
 export function Web3Provider({ children }) {
   const [account, setAccount] = useState('');
@@ -195,11 +194,6 @@ export function Web3Provider({ children }) {
       throw new Error(`Failed to initialize Web3: ${error.message}`);
     }
   }, []);
-
-  const convertEthToKes = (ethAmount) => {
-    const ethValue = parseFloat(ethAmount) || 0;
-    return ethValue * ETH_TO_KES_RATE;
-  };
 
   useEffect(() => {
     const handleChainChanged = (chainIdHex) => {
