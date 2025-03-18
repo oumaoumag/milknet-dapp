@@ -10,7 +10,7 @@
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^13.5.0",
     "ethers": "^6.13.5",
-    "framer-motion": "^12.4.7",
+    "framer-motion": "^12.5.0",
     "i": "^0.3.7",
     "lucide-react": "^0.477.0",
     "prop-types": "^15.8.1",
