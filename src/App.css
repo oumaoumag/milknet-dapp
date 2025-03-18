@@ -264,6 +264,44 @@ tr:hover {
   background-color: #d97706 !important;
 }
 
+/* Applied to all toast content */
+.Toastify__toast-body {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+/* Target the actual text content div inside toast body */
+.Toastify__toast-body > div {
+  color: white !important;
+}
+
+/* Custom toast class applied via ToastContainer */
+.custom-toast {
+  color: white !important;
+}
+
+.custom-toast .Toastify__toast-body,
+.custom-toast .Toastify__toast-body > div,
+.custom-toast .Toastify__toast-icon svg,
+.custom-toast .Toastify__close-button {
+  color: white !important;
+}
+
+/* Ensure close button is also visible */
+.Toastify__close-button {
+  color: white !important;
+  opacity: 0.8 !important;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1 !important;
+}
+
+/* Ensure progress bar is visible */
+.Toastify__progress-bar {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
 /* Modal styles */
 .modal-overlay {
   position: fixed;

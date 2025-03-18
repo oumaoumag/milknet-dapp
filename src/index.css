@@ -50,3 +50,10 @@ body {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* High specificity toast styles that override Tailwind */
+#root .Toastify .Toastify__toast-container .Toastify__toast .Toastify__toast-body,
+#root .Toastify .Toastify__toast-container .Toastify__toast .Toastify__toast-body > div {
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
