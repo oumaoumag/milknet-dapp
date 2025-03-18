@@ -4,6 +4,7 @@ import { useAuth, ROLES } from '../../contexts/AuthContext';
 import { useWeb3 } from '../../contexts/Web3Context';
 import { toast } from 'react-toastify';
 import { formatBlockchainError } from '../../utils/errorUtils';
+import { motion } from 'framer-motion';
 
 export default function Register() {
   const [selectedRoles, setSelectedRoles] = useState([]);
@@ -25,9 +26,12 @@ export default function Register() {
 
   const handleConnectWallet = async () => {
     try {
+      setLoading(true);
       await connectWallet();
     } catch (error) {
       toast.error('Failed to connect wallet: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,229 +58,232 @@ export default function Register() {
       return;
     }
     
-    const isFarmerSelected = selectedRoles.includes(ROLES.FARMER);
-    const isBuyerSelected = selectedRoles.includes(ROLES.BUYER);
-    
-    // Validate farmer information
-    if (isFarmerSelected && (!farmerName.trim() || !location.trim())) {
-      toast.error('Please enter your name and location for farmer registration');
-      return;
-    }
-    
-    // Validate buyer information
-    if (isBuyerSelected && !buyerName.trim()) {
-      toast.error('Please enter your name for buyer registration');
-      return;
-    }
-    
     try {
       setLoading(true);
-      let registeredAsFarmer = false;
-      let registeredAsBuyer = false;
       
-      // Register as farmer if selected
-      if (isFarmerSelected) {
-        try {
-          await registerAsFarmer(farmerName, location);
-          registeredAsFarmer = true;
-        } catch (error) {
-          console.error('Farmer registration error:', error);
-          // Check if this is an "Already registered" error
-          if (error.message && (error.message.includes('Already registered') || 
-              (error.reason && error.reason.includes('Already registered')))) {
-            toast.info('You are already registered as a farmer. You can proceed to login.');
-            // Set as registered so user can proceed
-            registeredAsFarmer = true;
-          } else {
-            toast.error(formatBlockchainError(error) || 'Failed to register as farmer');
-          }
+      const registrationPromises = [];
+      
+      if (selectedRoles.includes(ROLES.FARMER)) {
+        if (!farmerName || !location) {
+          toast.error('Please provide farm name and location for Farmer registration');
+          setLoading(false);
+          return;
         }
+        registrationPromises.push(registerAsFarmer(farmerName, location));
       }
       
-      // Register as buyer if selected
-      if (isBuyerSelected) {
-        try {
-          await registerAsBuyer(buyerName);
-          registeredAsBuyer = true;
-        } catch (error) {
-          console.error('Buyer registration error:', error);
-          // Check if this is an "Already registered" error
-          if (error.message && (error.message.includes('Already registered') || 
-              (error.reason && error.reason.includes('Already registered')))) {
-            toast.info('You are already registered as a buyer. You can proceed to login.');
-            // Set as registered so user can proceed
-            registeredAsBuyer = true;
-          } else {
-            toast.error(formatBlockchainError(error) || 'Failed to register as buyer');
-          }
+      if (selectedRoles.includes(ROLES.BUYER)) {
+        if (!buyerName) {
+          toast.error('Please provide your name for Buyer registration');
+          setLoading(false);
+          return;
         }
+        registrationPromises.push(registerAsBuyer(buyerName));
       }
       
-      // Navigate based on registration results
-      if (registeredAsFarmer && registeredAsBuyer) {
-        toast.success('Successfully registered as both farmer and buyer!');
-        // Redirect to a screen to choose which role to use now
-        navigate('/login');
-      } else if (registeredAsFarmer) {
-        toast.success('Successfully registered as farmer!');
-        navigate('/farmer');
-      } else if (registeredAsBuyer) {
-        toast.success('Successfully registered as buyer!');
-        navigate('/buyer-dashboard');
-      } else {
-        toast.error('Registration failed. Please try again.');
-      }
+      await Promise.all(registrationPromises);
+      
+      toast.success('Registration successful!');
+      
+      // Redirect to role selection
+      navigate('/select-role');
+      
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error(formatBlockchainError(error) || 'Failed to register');
+      toast.error(formatBlockchainError(error) || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create an account</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <a href="/login" className="font-medium text-yellow-600 hover:text-yellow-500">
-              sign in to your existing account
-            </a>
-          </p>
-        </div>
-        
-        <div className="mt-8">
-          {!account ? (
-            <div className="flex flex-col items-center">
-              <p className="mb-4 text-gray-700 text-center">Connect your wallet to continue</p>
-              <button
-                onClick={handleConnectWallet}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-              >
-                Connect Wallet
-              </button>
-            </div>
-          ) : (
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Connected Wallet</label>
-                <div className="mt-1 flex items-center bg-gray-100 rounded-md px-3 py-2 text-gray-600">
-                  <span className="truncate">{account}</span>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Register as (select all that apply)</label>
-                <div className="mt-1 grid grid-cols-2 gap-3">
-                  <div 
-                    className={`border rounded-md px-3 py-2 cursor-pointer text-center ${
-                      selectedRoles.includes(ROLES.FARMER) 
-                        ? 'bg-yellow-50 border-yellow-500 text-yellow-700' 
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                    onClick={() => toggleRole(ROLES.FARMER)}
+    <div className="min-h-screen bg-gray-50 py-16 px-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-md mx-auto"
+      >
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-green-900 to-green-700 p-8 text-white text-center">
+            <h2 className="text-3xl font-bold">Register for MilkNet</h2>
+            <p className="mt-2 text-green-100">Join our blockchain-powered milk supply chain</p>
+          </div>
+          
+          <div className="p-8">
+            {!account ? (
+              <div className="text-center">
+                <div className="mb-6">
+                  <svg 
+                    className="w-16 h-16 mx-auto text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    Farmer
-                  </div>
-                  <div 
-                    className={`border rounded-md px-3 py-2 cursor-pointer text-center ${
-                      selectedRoles.includes(ROLES.BUYER) 
-                        ? 'bg-yellow-50 border-yellow-500 text-yellow-700' 
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                    onClick={() => toggleRole(ROLES.BUYER)}
-                  >
-                    Buyer
-                  </div>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1h-4a1 1 0 01-1-1v-6z" />
+                  </svg>
                 </div>
-              </div>
-              
-              {selectedRoles.includes(ROLES.FARMER) && (
-                <div className="space-y-4 p-4 border border-yellow-200 bg-yellow-50 rounded-md">
-                  <h3 className="text-md font-medium text-yellow-700">Farmer Information</h3>
-                  <div>
-                    <label htmlFor="farmerName" className="block text-sm font-medium text-gray-700">
-                      Farmer Name
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        id="farmerName"
-                        name="farmerName"
-                        type="text"
-                        value={farmerName}
-                        onChange={(e) => setFarmerName(e.target.value)}
-                        required
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                      Farm Location
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        id="location"
-                        name="location"
-                        type="text"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        required
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {selectedRoles.includes(ROLES.BUYER) && (
-                <div className="space-y-4 p-4 border border-blue-200 bg-blue-50 rounded-md">
-                  <h3 className="text-md font-medium text-blue-700">Buyer Information</h3>
-                  <div>
-                    <label htmlFor="buyerName" className="block text-sm font-medium text-gray-700">
-                      Buyer Name
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        id="buyerName"
-                        name="buyerName"
-                        type="text"
-                        value={buyerName}
-                        onChange={(e) => setBuyerName(e.target.value)}
-                        required
-                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Connect Your Wallet</h3>
+                <p className="text-gray-600 mb-6">
+                  Please connect your MetaMask wallet to begin registration
+                </p>
                 <button
-                  type="submit"
-                  disabled={loading || !account || selectedRoles.length === 0 || 
-                    (selectedRoles.includes(ROLES.FARMER) && (!farmerName.trim() || !location.trim())) || 
-                    (selectedRoles.includes(ROLES.BUYER) && !buyerName.trim())}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleConnectWallet}
+                  disabled={loading}
+                  className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex justify-center items-center"
                 >
                   {loading ? (
-                    <div className="flex items-center">
+                    <>
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Registering...
-                    </div>
-                  ) : 'Register'}
+                      Connecting...
+                    </>
+                  ) : 'Connect Wallet'}
                 </button>
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-gray-600">
+                    Already registered?{' '}
+                    <button 
+                      onClick={() => navigate('/login')}
+                      className="text-green-600 hover:text-green-800 font-medium"
+                    >
+                      Login here
+                    </button>
+                  </p>
+                </div>
               </div>
-            </form>
-          )}
+            ) : (
+              <form onSubmit={handleSubmit}>
+                <div className="mb-6">
+                  <div className="bg-gray-100 p-3 rounded-lg flex items-center mb-4">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span className="text-gray-800 text-sm font-mono">
+                      {account.substring(0, 8)}...{account.substring(account.length - 6)}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Select Roles</h3>
+                  <p className="text-gray-600 mb-4">
+                    Choose which roles you would like to register for
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div 
+                    className={`border rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                      selectedRoles.includes(ROLES.FARMER)
+                        ? 'bg-green-50 border-green-500 text-green-700' 
+                        : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
+                    onClick={() => toggleRole(ROLES.FARMER)}
+                  >
+                    <svg className="w-10 h-10 mx-auto mb-2 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                    </svg>
+                    <div className="font-medium">Farmer</div>
+                  </div>
+                  
+                  <div 
+                    className={`border rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                      selectedRoles.includes(ROLES.BUYER)
+                        ? 'bg-green-50 border-green-500 text-green-700' 
+                        : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
+                    onClick={() => toggleRole(ROLES.BUYER)}
+                  >
+                    <svg className="w-10 h-10 mx-auto mb-2 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <div className="font-medium">Buyer</div>
+                  </div>
+                </div>
+                
+                {/* Dynamic form fields based on selected roles */}
+                {selectedRoles.includes(ROLES.FARMER) && (
+                  <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-100">
+                    <h4 className="font-medium text-green-800 mb-3">Farmer Details</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Farm Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={farmerName}
+                          onChange={(e) => setFarmerName(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          required={selectedRoles.includes(ROLES.FARMER)}
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Location *
+                        </label>
+                        <input
+                          type="text"
+                          value={location}
+                          onChange={(e) => setLocation(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          required={selectedRoles.includes(ROLES.FARMER)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedRoles.includes(ROLES.BUYER) && (
+                  <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <h4 className="font-medium text-blue-800 mb-3">Buyer Details</h4>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Your Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={buyerName}
+                        onChange={(e) => setBuyerName(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required={selectedRoles.includes(ROLES.BUYER)}
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                <button
+                  type="submit"
+                  disabled={loading || selectedRoles.length === 0}
+                  className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <div className="flex justify-center items-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </div>
+                  ) : 'Complete Registration'}
+                </button>
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-gray-600">
+                    Already registered?{' '}
+                    <button 
+                      type="button"
+                      onClick={() => navigate('/login')}
+                      className="text-green-600 hover:text-green-800 font-medium"
+                    >
+                      Login here
+                    </button>
+                  </p>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

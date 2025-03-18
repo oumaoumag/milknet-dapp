@@ -1,12 +1,35 @@
+/* global BigInt */
 import React, { useState, useEffect } from 'react';
 import { useWeb3 } from '../../contexts/Web3Context';
 import { ethers } from 'ethers';
 import { fetchBatches } from '../../utils/contractCalls';
 import { formatBlockchainError } from '../../utils/errorUtils';
-import OrderModal from './OrderModal';
-import FormatBatchData, { formatDisplayPrice } from '../batches/FormatBatchData';
-import { kesToEth, ethToKes, formatKesAmount, safeEthFormat } from '../../utils/currencyUtils';
 import { toast } from 'react-toastify';
+import FormatBatchData, { formatDisplayPrice } from '../batches/FormatBatchData';
+import OrderModal from './OrderModal';
+import { kesToEth, ethToKes, formatKesAmount, safeEthFormat } from '../../utils/currencyUtils';
+import { motion } from 'framer-motion';
+
+// Define a more realistic ETH to KES conversion rate
+// 1 ETH = ~155,000 KES (as of March 2023)
+const ETH_TO_KES_RATE = 155000;
+
+// Helper function for proper ETH to KES conversion
+const convertEthToKes = (ethAmount) => {
+  // Parse the ETH amount as a float and multiply by the conversion rate
+  const ethValue = parseFloat(ethAmount) || 0;
+  return ethValue * ETH_TO_KES_RATE;
+};
+
+// Helper function to format KES with commas
+const formatKesPrice = (kesAmount) => {
+  return new Intl.NumberFormat('en-KE', {
+    style: 'currency',
+    currency: 'KES',
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0
+  }).format(kesAmount);
+};
 
 export default function Marketplace() {
   const { contract, account } = useWeb3();
@@ -16,7 +39,7 @@ export default function Marketplace() {
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [txStatus, setTxStatus] = useState({ loading: false, error: null });
-  const [displayCurrency, setDisplayCurrency] = useState('ETH'); // Default display currency
+  const [displayCurrency, setDisplayCurrency] = useState('ETH');
   const [deletingBatchId, setDeletingBatchId] = useState(null);
 
   useEffect(() => {
@@ -27,21 +50,38 @@ export default function Marketplace() {
           const rawBatches = await fetchBatches(contract);
           const formattedBatches = FormatBatchData(rawBatches);
           setBatches(formattedBatches);
+          console.log('Loaded batches data:', formattedBatches);
           setError(null);
         }
       } catch (err) {
         setError('Failed to load batches. Please try refreshing the page.');
         console.error('Batch loading error:', err);
+        console.error('Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
       } finally {
         setIsLoading(false);
       }
     };
 
     loadBatches();
+    
+    const refreshInterval = setInterval(() => {
+      if (contract) {
+        console.log('Refreshing batches data...');
+        loadBatches();
+      }
+    }, 30000);
+    
+    return () => clearInterval(refreshInterval);
+    
   }, [contract]);
 
   const handleOrder = (batch) => {
-    setSelectedBatch(batch);
+    const formattedBatch = {
+      ...batch,
+      pricePerLiter: safeEthFormat(batch.pricePerLiterWei)
+    };
+    
+    setSelectedBatch(formattedBatch);
     setShowOrderModal(true);
   };
 
@@ -51,11 +91,13 @@ export default function Marketplace() {
     try {
       setDeletingBatchId(batchId);
       const tx = await contract.deleteBatch(batchId);
+      toast.info('Deleting batch... Please wait for confirmation');
       await tx.wait();
       
       // Refresh the list
       const rawBatches = await fetchBatches(contract);
-      setBatches(FormatBatchData(rawBatches));
+      const updatedBatches = FormatBatchData(rawBatches);
+      setBatches(updatedBatches);
       
       toast.success('Batch successfully deleted');
     } catch (err) {
@@ -66,19 +108,32 @@ export default function Marketplace() {
     }
   };
 
-  const placeOrder = async (quantity, currencyMode) => {
+  const placeOrder = async (quantity) => {
     try {
-      setTxStatus({ loading: true, error: null });
+      setTxStatus({
+        loading: true,
+        error: null
+      });
       
-      // Convert KES to ETH if necessary
-      let finalQuantity = quantity;
-      if (currencyMode === 'KES') {
-        finalQuantity = quantity; // The quantity is still in liters, only the display price changes
+      // Convert quantity to BigNumber
+      const qtyInt = parseInt(quantity);
+      const quantityBN = ethers.parseUnits(qtyInt.toString(), 'wei');
+      
+      // Calculate total price as price per liter * quantity
+      // Use safeEthFormat to ensure no "too many decimals" error
+      const pricePerLiter = safeEthFormat(selectedBatch.pricePerLiter);
+      const totalPrice = parseFloat(pricePerLiter) * qtyInt;
+      
+      // Convert to wei safely
+      let totalPriceWei;
+      try {
+        totalPriceWei = ethers.parseEther(totalPrice.toFixed(6));
+      } catch (err) {
+        console.error("Error parsing total price:", err);
+        // Fallback with even fewer decimals
+        totalPriceWei = ethers.parseEther(totalPrice.toFixed(4));
       }
-
-      const quantityBN = ethers.toBigInt(finalQuantity);
-      // Use * operator for BigInt multiplication instead of .mul()
-      const totalPriceWei = quantityBN * ethers.toBigInt(selectedBatch.pricePerLiterWei);
+      
       const tx = await contract.placeOrder(
         selectedBatch.batchId,
         quantityBN,
@@ -86,139 +141,234 @@ export default function Marketplace() {
       );
 
       await tx.wait();
-      setTxStatus({ loading: false, error: null });
-      setShowOrderModal(false);
-      // Refresh batch list
-      const rawBatches = await fetchBatches(contract);
-      setBatches(FormatBatchData(rawBatches));
       
+      // Update order status and show success message
+      setTxStatus({
+        loading: false,
+        error: null
+      });
+      toast.success("Order placed successfully!");
+      
+      // Refresh batches after successful order
+      const rawBatches = await fetchBatches(contract);
+      const formattedBatches = FormatBatchData(rawBatches);
+      setBatches(formattedBatches);
+      
+      return tx;
     } catch (error) {
-      console.error('Error placing order:', error);
-      setTxStatus({ loading: false, error: formatBlockchainError(error) });
+      console.error("Error placing order:", error);
+      
+      // More detailed error handling
+      let errorMessage = "Failed to place order";
+      
+      if (error.code === "INSUFFICIENT_FUNDS") {
+        errorMessage = "Insufficient funds in your wallet to complete this transaction";
+      } else if (error.message.includes("user rejected")) {
+        errorMessage = "Transaction rejected in wallet";
+      } else if (error.message.includes("execution reverted")) {
+        // Extract the revert reason if available
+        errorMessage = error.message.includes(":")
+          ? `Contract error: ${error.message.split(":").pop().trim()}`
+          : "Contract rejected the transaction";
+      }
+      
+      setTxStatus({
+        loading: false,
+        error: errorMessage
+      });
+      toast.error(errorMessage);
+      throw error;
     }
   };
 
   return (
-    <div className="container px-4 sm:px-6 lg:px-8 py-8 mx-auto max-w-7xl">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-extrabold text-gray-900 text-center sm:text-left">Available Milk Batches</h2>
-        <div className="inline-flex rounded-md shadow-sm">
-          <button
-            type="button"
-            onClick={() => setDisplayCurrency('ETH')}
-            className={`px-3 py-2 text-sm font-medium rounded-l-lg ${displayCurrency === 'ETH' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-          >
-            ETH
-          </button>
-          <button
-            type="button"
-            onClick={() => setDisplayCurrency('KES')}
-            className={`px-3 py-2 text-sm font-medium rounded-r-lg ${displayCurrency === 'KES' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-          >
-            KES
-          </button>
-        </div>
-      </div>
-      
-      {error ? (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg text-center my-8 shadow-sm border border-red-200">
-          <p className="font-medium">{error}</p>
-        </div>
-      ) : isLoading ? (
-        <div className="flex justify-center items-center py-16">
-          <div className="animate-pulse flex flex-col items-center">
-            <div className="h-12 w-12 rounded-full bg-gray-200 mb-4"></div>
-            <p className="text-gray-500">Loading marketplace...</p>
+    <div className="marketplace-container bg-gray-50 min-h-screen">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-green-900 to-green-700 py-10 px-4">
+        <div className="container mx-auto">
+          <div className="max-w-3xl mx-auto text-center text-white">
+            <h1 className="text-4xl font-bold mb-4">Milk Marketplace</h1>
+            <p className="text-xl mb-8">Browse available milk batches from verified farmers</p>
+            <div className="flex justify-center gap-4">
+              <div className="bg-white bg-opacity-20 backdrop-blur-lg rounded-xl p-3 px-5 flex items-center space-x-2">
+                <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                <span>{batches.length} Active Batches</span>
+              </div>
+              <div className="bg-white bg-opacity-20 backdrop-blur-lg rounded-xl p-3 px-5 flex items-center space-x-2">
+                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <span>Choose Your Currency</span>
+              </div>
+            </div>
           </div>
         </div>
-      ) : batches.length === 0 ? (
-        <div className="bg-gray-50 rounded-xl p-8 text-center my-12 border border-gray-200">
-          <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-          </svg>
-          <p className="text-gray-600 text-lg font-medium">No available batches found</p>
-          <p className="text-gray-500 mt-2">Check back later for fresh milk batches</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mt-8">
-          {batches.map((batch) => (
-            <div 
-              key={batch.batchId} 
-              className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Currency Toggle */}
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900">Available Batches</h2>
+          <div className="bg-white rounded-lg shadow-sm p-1 inline-flex">
+            <button
+              onClick={() => setDisplayCurrency('ETH')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                displayCurrency === 'ETH' 
+                  ? 'bg-green-600 text-white' 
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
             >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-gray-800 truncate">
-                  {batch.farmerName || 'Farm Fresh Dairy'}
-                </h3>
-                <span 
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    batch.daysRemaining > 3 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                >
-                  {batch.daysRemaining} days remaining
-                </span>
+              ETH
+            </button>
+            <button
+              onClick={() => setDisplayCurrency('KES')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                displayCurrency === 'KES' 
+                  ? 'bg-green-600 text-white' 
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              KES
+            </button>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <p>{error}</p>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white rounded-xl p-6 shadow animate-pulse">
+                <div className="flex justify-between mb-4">
+                  <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                  <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+                </div>
+                <div className="space-y-4">
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  <div className="h-10 bg-gray-200 rounded w-full mt-4"></div>
+                </div>
               </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center pb-2 border-b border-gray-100 text-gray-700">
-                  <span>Price:</span>
-                  <div className="text-right">
-                    <span className="text-yellow-600 font-bold block">
-                      {displayCurrency === 'ETH' ? 
-                        `Ξ${formatDisplayPrice(batch.pricePerLiterWei)}/L` : 
-                        `${formatKesAmount(ethToKes(batch.pricePerLiter))}/L`}
-                    </span>
-                    <span className="text-gray-500 text-xs block">
-                      {displayCurrency === 'ETH' ? 
-                        `${formatKesAmount(ethToKes(batch.pricePerLiter))}/L` : 
-                        `Ξ${formatDisplayPrice(batch.pricePerLiterWei)}/L`}
+            ))}
+          </div>
+        ) : batches.length === 0 ? (
+          <div className="bg-white rounded-xl p-12 text-center shadow-sm">
+            <svg
+              className="mx-auto h-16 w-16 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
+            </svg>
+            <h3 className="mt-4 text-xl font-medium text-gray-900">No batches available</h3>
+            <p className="mt-2 text-gray-500">Check back later for fresh milk batches from our farmers.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {batches.map((batch) => (
+              <motion.div
+                key={batch.batchId}
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200"
+              >
+                <div className="p-5 border-b border-gray-100">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {batch.farmerName || 'Farm Fresh Dairy'}
+                    </h3>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        batch.daysRemaining > 3
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {batch.daysRemaining}d remaining
                     </span>
                   </div>
                 </div>
-                <div className="flex justify-between items-center text-gray-700">
-                  <span>Available:</span>
-                  <span className="font-medium">{batch.quantity} Liters</span>
-                </div>
-                <div className="flex flex-col space-y-2 mt-4">
-                  <button 
-                    className="w-full py-3 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 active:bg-yellow-700 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
-                    onClick={() => handleOrder(batch)}
-                  >
-                    Place Order
-                  </button>
+                
+                <div className="p-5 space-y-4">
+                  <div className="flex justify-between items-center text-gray-700">
+                    <span className="text-sm">Price per Liter:</span>
+                    <span className="font-semibold text-green-600">
+                      {displayCurrency === 'ETH' 
+                        ? `Ξ${formatDisplayPrice(batch.pricePerLiter)}` 
+                        : formatKesPrice(convertEthToKes(batch.pricePerLiter))}
+                    </span>
+                  </div>
                   
-                  {/* Delete Button - Only visible to the farmer who created the batch */}
-                  {account && account.toLowerCase() === batch.farmerAddress.toLowerCase() && (
-                    <button 
-                      className="w-full py-3 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 active:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50 flex justify-center items-center"
-                      onClick={() => handleDeleteBatch(batch.batchId)}
-                      disabled={deletingBatchId === batch.batchId}
-                    >
-                      {deletingBatchId === batch.batchId ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Deleting...
-                        </>
-                      ) : 'Delete Batch'}
-                    </button>
-                  )}
+                  <div className="flex justify-between items-center text-gray-700">
+                    <span className="text-sm">Available Quantity:</span>
+                    <span className="font-semibold">
+                      {batch.quantity} Liters
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center text-gray-700">
+                    <span className="text-sm">Expiry Date:</span>
+                    <span className="font-semibold">
+                      {batch.expiryDate.toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+                
+                <div className="p-5 bg-gray-50 border-t border-gray-100">
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => handleOrder(batch)}
+                      className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                    >
+                      Place Order
+                    </button>
+                    
+                    {account && account.toLowerCase() === batch.farmerAddress.toLowerCase() && (
+                      <button
+                        onClick={() => handleDeleteBatch(batch.batchId)}
+                        disabled={deletingBatchId === batch.batchId}
+                        className="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex justify-center items-center"
+                      >
+                        {deletingBatchId === batch.batchId ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Deleting...
+                          </>
+                        ) : (
+                          'Delete Batch'
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Order Modal - Preserve all original functionality */}
+      {showOrderModal && selectedBatch && (
+        <OrderModal
+          show={showOrderModal}
+          batch={selectedBatch}
+          onClose={() => setShowOrderModal(false)}
+          onSubmit={placeOrder}
+          status={txStatus}
+        />
       )}
-      <OrderModal
-        show={showOrderModal}
-        batch={selectedBatch}
-        onClose={() => setShowOrderModal(false)}
-        onSubmit={placeOrder}
-        status={txStatus}
-      />
     </div>
   );
 }

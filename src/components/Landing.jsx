@@ -1,185 +1,218 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Devs } from './Devs';
-import { useAuth } from '../contexts/AuthContext';
-import { useWeb3 } from '../contexts/Web3Context';
+import { motion } from 'framer-motion';
 
 export default function Landing() {
-  const { isAuthenticated, isFarmer, isBuyer, user } = useAuth();
-  const { account } = useWeb3();
   return (
-    <div className="relative min-h-screen">
-      {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0">
-        <div 
-          className="absolute inset-0 bg-black/60" 
-          style={{ 
-            backgroundImage: "url(/images/trial2.webp)",
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
-          }}
-        ></div>
-      </div>
+    <div className="landing-container">
+      {/* Hero Section */}
+      <section className="hero-section bg-gradient-to-r from-green-900 to-green-700 text-white">
+        <div className="container mx-auto py-20 px-4 md:px-8 flex flex-col items-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-4xl"
+          >
+            <h1 className="text-5xl md:text-6xl font-bold mb-4">MilkNet</h1>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-8">Transforming Dairy Supply Chains With Blockchain</h2>
+            <p className="text-xl mb-10 text-gray-100">
+              Join the revolution in transparent and traceable milk supply
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+              <Link to="/register-farmer" className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-all flex items-center justify-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                </svg>
+                Register as Farmer
+              </Link>
+              <Link to="/register" className="bg-white hover:bg-gray-100 text-green-800 font-bold py-3 px-8 rounded-lg transition-all flex items-center justify-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                Register as Buyer
+              </Link>
+            </div>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link to="/marketplace" className="bg-transparent hover:bg-green-800 border-2 border-white text-white font-bold py-3 px-8 rounded-lg transition-all flex items-center justify-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Explore Marketplace
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-6xl mx-auto p-8 text-white">
-        <header className="text-center py-16 mb-12">
-          <h1 className="text-4xl mb-8 text-yellow-400 font-bold drop-shadow-lg">
-            MilkNet Dairy Supply Chain Marketplace
-          </h1>
-          <p className="text-xl mb-8 drop-shadow-md">
-            Connect directly with farmers for fresh dairy products
+      {/* Arenas Section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="container mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-4 text-gray-800">Our Arenas</h2>
+          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+            Explore different aspects of our blockchain-powered milk supply chain platform
           </p>
           
-          {isAuthenticated ? (
-            <div className="bg-gray-900 bg-opacity-80 p-6 rounded-xl border border-gray-700 max-w-xl mx-auto mb-6">
-              <h2 className="text-2xl font-bold text-yellow-400 mb-3">Welcome back, {user?.name || 'there'}!</h2>
-              <p className="mb-4">You're logged in as a {isFarmer ? 'Farmer' : isBuyer ? 'Buyer' : 'User'}.</p>
-              
-              <div className="flex gap-6 justify-center mt-4">
-                {isFarmer ? (
-                  <Link 
-                    to="/farmer" 
-                    className="bg-yellow-400 text-black px-6 py-3 rounded-md hover:bg-yellow-500 transition-transform hover:-translate-y-0.5 text-lg font-medium"
-                  >
-                    Go to Farmer Dashboard
-                  </Link>
-                ) : isBuyer ? (
-                  <Link 
-                    to="/buyer-dashboard" 
-                    className="bg-green-500 text-black px-6 py-3 rounded-md hover:bg-green-600 transition-transform hover:-translate-y-0.5 text-lg font-medium"
-                  >
-                    Go to Buyer Dashboard
-                  </Link>
-                ) : null}
-                
-                <Link 
-                  to="/marketplace" 
-                  className="bg-white text-green-900 px-6 py-3 rounded-md hover:bg-gray-100 transition-transform hover:-translate-y-0.5 text-lg font-medium"
-                >
-                  Browse Marketplace
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Arena 1 - Farmers */}
+            <motion.div 
+              whileHover={{ y: -10 }}
+              className="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-lg transition-all"
+            >
+              <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mb-6 mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-center mb-3">For Farmers</h3>
+              <p className="text-gray-600 text-center mb-6">
+                Register your farm, manage milk batches, and connect directly with buyers - all on blockchain.
+              </p>
+              <div className="flex justify-center">
+                <Link to="/register-farmer" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+                  Register as Farmer
                 </Link>
               </div>
-            </div>
-          ) : account ? (
-            <div className="bg-gray-900 bg-opacity-80 p-6 rounded-xl border border-gray-700 max-w-xl mx-auto mb-6">
-              <h2 className="text-2xl font-bold text-yellow-400 mb-3">Almost there!</h2>
-              <p className="mb-4">Your wallet is connected, but you need to register or login.</p>
-              
-              <div className="flex gap-6 justify-center mt-4">
-                <Link 
-                  to="/register" 
-                  className="bg-yellow-400 text-black px-6 py-3 rounded-md hover:bg-yellow-500 transition-transform hover:-translate-y-0.5 text-lg font-medium"
-                >
-                  Register
-                </Link>
-                <Link 
-                  to="/login" 
-                  className="bg-white text-green-900 px-6 py-3 rounded-md hover:bg-gray-100 transition-transform hover:-translate-y-0.5 text-lg font-medium"
-                >
-                  Login
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-6">
-              <p className="text-lg mb-2">Please connect your wallet and register as:</p>
-              <div className="flex gap-6 justify-center">
-                <Link 
-                  to="/register" 
-                  className="bg-yellow-400 text-black px-6 py-3 rounded-md hover:bg-yellow-500 transition-transform hover:-translate-y-0.5 text-lg font-medium"
-                >
-                  Farmer
-                </Link>
-                <Link 
-                  to="/register" 
-                  className="bg-green-500 text-black px-6 py-3 rounded-md hover:bg-green-600 transition-transform hover:-translate-y-0.5 text-lg font-medium"
-                >
-                  Buyer
-                </Link>
-              </div>
-              <div className="mt-4">
-                <Link 
-                  to="/login" 
-                  className="text-yellow-400 underline hover:text-yellow-300"
-                >
-                  Already registered? Login here
-                </Link>
-              </div>
-            </div>
-          )}
-        </header>
-
-        {/* Feature cards section */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
-          <div className="bg-gray-900 bg-opacity-70 p-8 rounded-xl border border-gray-700 transition-transform hover:-translate-y-1">
-            <h3 className="mb-4">🔄 Transparent Transactions</h3>
-            <p>Blockchain-powered traceability for every milk batch</p>
-          </div>
-          <div className="bg-gray-900 bg-opacity-70 p-8 rounded-xl border border-gray-700 transition-transform hover:-translate-y-1">
-            <h3 className="mb-4">⚡ Instant Settlement</h3>
-            <p>Secure payments with smart contract escrow</p>
-          </div>
-          <div className="bg-gray-900 bg-opacity-70 p-8 rounded-xl border border-gray-700 transition-transform hover:-translate-y-1">
-            <h3 className="mb-4">🛡️ Guaranteed Quality</h3>
-            <p>Dispute resolution & quality assurance system</p>
-          </div>
-        </section>
-        
-        {/* How it works section */}
-        <section className="mt-16 bg-gray-900 bg-opacity-80 p-8 rounded-xl">
-          <h2 className="text-3xl text-yellow-400 font-bold mb-6 text-center">How It Works</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-gray-800 bg-opacity-80 p-6 rounded-xl border border-gray-700">
-              <h3 className="text-xl mb-4 text-yellow-400 font-semibold">For Farmers</h3>
-              <ol className="list-decimal pl-5 space-y-3">
-                <li>Connect your wallet and register as a farmer</li>
-                <li>Upload information about your milk batches</li>
-                <li>Set your desired price and quality information</li>
-                <li>Receive instant payment when buyers purchase</li>
-                <li>Build your reputation through verified transactions</li>
-              </ol>
-              {!isAuthenticated && (
-                <div className="mt-6 text-center">
-                  <Link 
-                    to="/register" 
-                    className="inline-block bg-yellow-400 text-black px-4 py-2 rounded-md hover:bg-yellow-500 transition-all font-medium"
-                  >
-                    Register as Farmer
-                  </Link>
-                </div>
-              )}
-            </div>
+            </motion.div>
             
-            <div className="bg-gray-800 bg-opacity-80 p-6 rounded-xl border border-gray-700">
-              <h3 className="text-xl mb-4 text-yellow-400 font-semibold">For Buyers</h3>
-              <ol className="list-decimal pl-5 space-y-3">
-                <li>Connect your wallet and register as a buyer</li>
-                <li>Browse available milk batches by price, quality, or location</li>
-                <li>Purchase directly from farmers with transparent pricing</li>
-                <li>Rate transactions and build your buyer profile</li>
-                <li>Access transaction history and receipts</li>
-              </ol>
-              {!isAuthenticated && (
-                <div className="mt-6 text-center">
-                  <Link 
-                    to="/register" 
-                    className="inline-block bg-green-500 text-black px-4 py-2 rounded-md hover:bg-green-600 transition-all font-medium"
-                  >
-                    Register as Buyer
-                  </Link>
-                </div>
-              )}
+            {/* Arena 2 - Buyers */}
+            <motion.div 
+              whileHover={{ y: -10 }}
+              className="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-lg transition-all"
+            >
+              <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mb-6 mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-center mb-3">For Buyers</h3>
+              <p className="text-gray-600 text-center mb-6">
+                Purchase quality milk with full transparency and traceability - from farm to your doorstep.
+              </p>
+              <div className="flex justify-center">
+                <Link to="/register" className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg text-sm">
+                  Register as Buyer
+                </Link>
+              </div>
+            </motion.div>
+            
+            {/* Arena 3 - Marketplace */}
+            <motion.div 
+              whileHover={{ y: -10 }}
+              className="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-lg transition-all"
+            >
+              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-6 mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-center mb-3">Marketplace</h3>
+              <p className="text-gray-600 text-center mb-6">
+                Browse available milk batches, compare prices, and place orders with secure blockchain transactions.
+              </p>
+              <div className="flex justify-center">
+                <Link to="/marketplace" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+                  Explore Marketplace
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Statistics Section */}
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="container mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 text-center">
+            <div className="p-6">
+              <h3 className="text-4xl font-bold text-green-600 mb-2">1.2k+</h3>
+              <p className="text-gray-600">Registered Farmers</p>
+            </div>
+            <div className="p-6">
+              <h3 className="text-4xl font-bold text-green-600 mb-2">5k+</h3>
+              <p className="text-gray-600">Milk Batches</p>
+            </div>
+            <div className="p-6">
+              <h3 className="text-4xl font-bold text-green-600 mb-2">10k+</h3>
+              <p className="text-gray-600">Transactions</p>
+            </div>
+            <div className="p-6">
+              <h3 className="text-4xl font-bold text-green-600 mb-2">98%</h3>
+              <p className="text-gray-600">Customer Satisfaction</p>
             </div>
           </div>
-        </section>
-      </div>
-      
-      {/* Keep the Devs component */}
-      <div className="relative z-10">
-        <Devs />
-      </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="container mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-4 text-gray-800">Why MilkNet?</h2>
+          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+            Our platform offers revolutionary features powered by blockchain technology
+          </p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Immutable Records",
+                desc: "All transactions are recorded on blockchain, ensuring data cannot be altered or tampered with."
+              },
+              {
+                title: "Quality Assurance",
+                desc: "Track milk from source to consumer, with quality checkpoints recorded at every stage."
+              },
+              {
+                title: "Fair Pricing",
+                desc: "Transparent pricing model ensures farmers receive fair compensation for their products."
+              },
+              {
+                title: "Dispute Resolution",
+                desc: "Built-in mechanisms for addressing quality concerns and resolving disputes."
+              },
+              {
+                title: "Real-time Updates",
+                desc: "Get instant notifications about orders, deliveries, and payments."
+              },
+              {
+                title: "Secure Payments",
+                desc: "Smart contracts ensure secure and timely payments for all parties."
+              }
+            ].map((feature, index) => (
+              <motion.div 
+                key={index}
+                whileHover={{ scale: 1.03 }}
+                className="bg-gray-50 rounded-lg p-6 shadow hover:shadow-md transition-all"
+              >
+                <h3 className="text-xl font-bold mb-3 text-green-700">{feature.title}</h3>
+                <p className="text-gray-600">{feature.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4 bg-gradient-to-r from-green-900 to-green-700 text-white">
+        <div className="container mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-6">Ready to Join the Future of Dairy?</h2>
+          <p className="text-xl mb-10 max-w-2xl mx-auto">
+            Whether you're a farmer looking to sell your products or a buyer seeking quality milk,
+            MilkNet has everything you need to get started.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link to="/register-farmer" className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg transition-all">
+              Register as Farmer
+            </Link>
+            <Link to="/register" className="bg-transparent hover:bg-green-800 border-2 border-white text-white font-bold py-3 px-8 rounded-lg transition-all">
+              Register as Buyer
+            </Link>
+            <Link to="/marketplace" className="bg-white hover:bg-gray-100 text-green-800 font-bold py-3 px-8 rounded-lg transition-all">
+              Explore Marketplace
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
